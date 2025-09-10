@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Div Scroll</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        h1 {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+        
+        .content {
+            padding: 25px;
+        }
+        
+        .scrollable-div {
+            height: 400px;
+            overflow-y: auto;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f8f9fa;
+            line-height: 1.6;
+        }
+        
+        .scrollable-div p {
+            margin-bottom: 15px;
+        }
+        
+        .marker {
+            background: #ffeaa7;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 5px solid #fdcb6e;
+            margin: 20px 0;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 25px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .position-info {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .explanation {
+            background: #e8f4fc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 25px;
+        }
+        
+        code {
+            background: #2c3e50;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simple Div Scroll Example</h1>
+        
+        <div class="content">
+            <div class="scrollable-div" id="scrollableDiv">
+                <p>This is a scrollable container. The content is longer than the container's height, so you can scroll vertically.</p>
+                
+                <p>JavaScript makes it easy to programmatically scroll to specific positions within an element.</p>
+                
+                <p>In this example, we'll scroll to the 400px position from the top of this div when you click the button.</p>
+                
+                <p>Web development involves creating websites and web applications. This includes front-end development (what you see in the browser) and back-end development (server-side processing).</p>
+                
+                <p>HTML provides the structure of a webpage, CSS controls the presentation and styling, and JavaScript adds interactivity and dynamic behavior.</p>
+                
+                <div class="marker">
+                    <h3>400px Position Marker</h3>
+                    <p>This marker indicates the 400px position from the top of the scrollable div.</p>
+                </div>
+                
+                <p>Modern JavaScript includes many methods for manipulating web page content, handling events, and creating dynamic user experiences.</p>
+                
+                <p>When working with scrollable elements, you can use the scrollTop property to get or set the number of pixels that an element's content is scrolled vertically.</p>
+                
+                <p>To scroll to a specific position, you simply set the scrollTop value to the desired number of pixels.</p>
+                
+                <p>This technique works consistently across all modern browsers and is much simpler than other scrolling approaches.</p>
+                
+                <p>You can also use smooth scrolling behavior by setting the scroll behavior property to 'smooth' in CSS.</p>
+                
+                <p>Remember that scrolling is relative to the element itself, not the entire page, when working with scrollable divs.</p>
+            </div>
+            
+            <div class="controls">
+                <button onclick="scrollToPosition()">Scroll to 400px</button>
+                <button onclick="scrollToTop()">Scroll to Top</button>
+            </div>
+            
+            <div class="position-info">
+                Current scroll position: <span id="scrollPosition">0</span>px
+            </div>
+            
+            <div class="explanation">
+                <h3>How it works:</h3>
+                <p>The JavaScript code is simple: <code>document.getElementById('scrollableDiv').scrollTop = 400;</code></p>
+                <p>This sets the scroll position to 400px from the top of the div.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to scroll to 400px from the top
+        function scrollToPosition() {
+            const div = document.getElementById('scrollableDiv');
+            div.scrollTop = 400;
+            updateScrollPosition();
+        }
+        
+        // Function to scroll to the top
+        function scrollToTop() {
+            const div = document.getElementById('scrollableDiv');
+            div.scrollTop = 0;
+            updateScrollPosition();
+        }
+        
+        // Update the scroll position display
+        function updateScrollPosition() {
+            const div = document.getElementById('scrollableDiv');
+            document.getElementById('scrollPosition').textContent = div.scrollTop;
+        }
+        
+        // Update scroll position when user scrolls
+        document.getElementById('scrollableDiv').addEventListener('scroll', updateScrollPosition);
+        
+        // Initial update
+        updateScrollPosition();
+    </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+========== RozbicieDodDok ==========
+DokId,Znaczenie,Stawka,Netto,Podatek,NettoDet,PodatekDet,NettoMag,PodatekMag
+704882.0,13,2300,9.96,2.29,10.49,2.41,7.86,1.81
+
+========== Dok ==========
+DokId,UzId,MagId,Data,KolejnyWDniu,DataDod,DataPom,NrDok,TypDok,Aktywny,Opcja1,Opcja2,Opcja3,Opcja4,CenyZakBrutto,CenySpBrutto,FormaPlat,TerminPlat,PoziomCen,RabatProc,Netto,Podatek,NettoUslugi,PodatekUslugi,NettoDet,PodatekDet,NettoDetUslugi,PodatekDetUslugi,NettoMag,PodatekMag,NettoMagUslugi,PodatekMagUslugi,Razem,DoZaplaty,Zaplacono,Kwota1,Kwota2,Kwota3,Kwota4,Kwota5,Kwota6,Kwota7,Kwota8,Kwota9,Kwota10,Param1,Param2,Param3,Param4,EksportFK,Zmiana,NrKolejny,NrKolejnyMag,Param5,Param6,Kwota11,Kwota12,WalId,Kurs,CentrDokId,Opcja5,Opcja6,Opcja7,Opcja8,ZmianaPkt,ZaplaconoPodatek,ZaplaconoWKasie,WalIdPlatnosci,DataWystKSeF,DaneWystId,Opcja9,Opcja10,Opcja11,Opcja12
+704882.0,10.0,1.0,2025-08-21,12,2025-08-21,2025-08-21,WZ/25/14662,5,1,0,0,0,0,0,0,0,0,2,0.0,9.96,2.29,0.0,0.0,10.49,2.41,0.0,0.0,7.86,1.81,0.0,0.0,12.25,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0,0,0,0,0,2025-08-21 14:21:04.600,,,0,0,0.0,0.0,,,,0,0,0,0,,0.0,0.0,,,1.0,0,1,0,0
+
+========== DokKontoBankowe ==========
+DokId,KBId
+704882.0,1.0
+
+========== DokKontr ==========
+DokId,KontrId
+704882.0,1463.0
+
+========== RozbicieDok ==========
+DokId,Stawka,Netto,Podatek,NettoDet,PodatekDet,NettoMag,PodatekMag
+704882.0,2300,9.96,2.29,10.49,2.41,7.86,1.81
+
+========== TekstDok ==========
+DokId,Znaczenie,Tekst
+704882.0,94,"""Apteka Nova mgr"
+704882.0,88,"""Apteka Nova mgr farm.Joanna Jaworska-Nowak i Pawe³ Jaworski spó³ka cywilna"""
+704882.0,312,1
+704882.0,313,20240601
+704882.0,90,34-200
+704882.0,148,54102014330000100200480871
+704882.0,93,5521603867
+704882.0,145,65
+704882.0,222,83 8128 0005 0003 6487 2000 0010
+704882.0,221,Bank Spó³dzielczy
+704882.0,95,farm.Joanna Jaworska-Nowak
+704882.0,149,ma³opolskie
+704882.0,154,PL
+704882.0,153,Polska
+704882.0,91,Sucha Beskidzka
+704882.0,151,Sucha Beskidzka
+704882.0,152,Sucha Beskidzka
+704882.0,150,suski
+704882.0,89,ul. Nad Stawami
+704882.0,92,"ul. Nad Stawami 65, 34-200 Sucha Beskidzka"
+
+========== Rozlicza ==========
+DokId,Kolejnosc,RozliczanyDokId,Rozliczenie,RozliczeniePodatku,DodRozliczenie,PomRozliczenie
+704884.0,2,704882.0,0.0,0.0,0.0,0.0
+
+========== Zmiana ==========
+ZmId,SesjaId,Czas,Akcja,Tabela,Tekst,SklepId,TabId
+704882.0,112.0,2021-01-03 19:40:57.403,214,9,z '' na '91463',,51879.0
+3191008.0,79995.0,2025-08-21 14:20:38.167,401,3,5(WZ)/'WZ/25/14662'/20250821/20250821/20,,704882.0
+
+========== TekstPoz ==========
+DokId,Kolejnosc,Znaczenie,Tekst
+704882.0,1,37,1.0X13mm TEKSY MASZYNOWE $$$
+704882.0,1,81,kg-
+
+========== PozDok ==========
+DokId,Kolejnosc,NrPozycji,TowId,TypPoz,IloscPlus,IloscMinus,PoziomCen,Metoda,CenaDomyslna,CenaPrzedRab,RabatProc,CenaPoRab,Wartosc,CenaDet,CenaMag,Stawka,TypTowaru,IleWZgrzewce,StawkaDod,Netto,Podatek,SledzPartii
+704882.0,1,1,65434.0,4,1.0,0.0,2,3,9.9593,9.96,0.0,9.96,9.96,10.4878,7.86,2300,0,0.0,,,,

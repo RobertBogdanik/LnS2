@@ -1,0 +1,68 @@
+========== RozbicieDodDok ==========
+DokId,Znaczenie,Stawka,Netto,Podatek,NettoDet,PodatekDet,NettoMag,PodatekMag
+704884.0,13,2300,28.1,6.46,29.19,6.71,21.54,4.96
+
+========== Dok ==========
+DokId,UzId,MagId,Data,KolejnyWDniu,DataDod,DataPom,NrDok,TypDok,Aktywny,Opcja1,Opcja2,Opcja3,Opcja4,CenyZakBrutto,CenySpBrutto,FormaPlat,TerminPlat,PoziomCen,RabatProc,Netto,Podatek,NettoUslugi,PodatekUslugi,NettoDet,PodatekDet,NettoDetUslugi,PodatekDetUslugi,NettoMag,PodatekMag,NettoMagUslugi,PodatekMagUslugi,Razem,DoZaplaty,Zaplacono,Kwota1,Kwota2,Kwota3,Kwota4,Kwota5,Kwota6,Kwota7,Kwota8,Kwota9,Kwota10,Param1,Param2,Param3,Param4,EksportFK,Zmiana,NrKolejny,NrKolejnyMag,Param5,Param6,Kwota11,Kwota12,WalId,Kurs,CentrDokId,Opcja5,Opcja6,Opcja7,Opcja8,ZmianaPkt,ZaplaconoPodatek,ZaplaconoWKasie,WalIdPlatnosci,DataWystKSeF,DaneWystId,Opcja9,Opcja10,Opcja11,Opcja12
+704884.0,10.0,1.0,2025-08-21,14,2025-08-21,2025-08-21,FV/25/08443,33,1,0,0,0,0,0,0,0,0,2,0.0,28.1,6.46,0.0,0.0,29.19,6.71,0.0,0.0,21.54,4.96,0.0,0.0,34.56,34.56,34.56,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,0,0,0,0,0,2025-08-21 14:21:04.590,,,0,51658,0.0,0.0,,,,0,0,0,0,,0.0,0.0,,,1.0,0,1,0,0
+
+========== DokKontoBankowe ==========
+DokId,KBId
+704884.0,1.0
+
+========== DokKontr ==========
+DokId,KontrId
+704884.0,1463.0
+
+========== RozbicieDok ==========
+DokId,Stawka,Netto,Podatek,NettoDet,PodatekDet,NettoMag,PodatekMag
+704884.0,2300,28.1,6.46,29.19,6.71,21.54,4.96
+
+========== TekstDok ==========
+DokId,Znaczenie,Tekst
+704884.0,94,"""Apteka Nova mgr"
+704884.0,88,"""Apteka Nova mgr farm.Joanna Jaworska-Nowak i Pawe³ Jaworski spó³ka cywilna"""
+704884.0,251,0
+704884.0,312,1
+704884.0,331,20210222/VAT:Czynny
+704884.0,313,20240601
+704884.0,90,34-200
+704884.0,148,54102014330000100200480871
+704884.0,93,5521603867
+704884.0,145,65
+704884.0,222,83 8128 0005 0003 6487 2000 0010
+704884.0,221,Bank Spó³dzielczy
+704884.0,95,farm.Joanna Jaworska-Nowak
+704884.0,149,ma³opolskie
+704884.0,154,PL
+704884.0,153,Polska
+704884.0,91,Sucha Beskidzka
+704884.0,151,Sucha Beskidzka
+704884.0,152,Sucha Beskidzka
+704884.0,150,suski
+704884.0,89,ul. Nad Stawami
+704884.0,92,"ul. Nad Stawami 65, 34-200 Sucha Beskidzka"
+
+========== Rozlicza ==========
+DokId,Kolejnosc,RozliczanyDokId,Rozliczenie,RozliczeniePodatku,DodRozliczenie,PomRozliczenie
+704881.0,1,704884.0,22.31,0.0,0.0,0.0
+704883.0,1,704884.0,12.25,0.0,0.0,0.0
+704884.0,1,704880.0,0.0,0.0,0.0,0.0
+704884.0,2,704882.0,0.0,0.0,0.0,0.0
+
+========== Zmiana ==========
+ZmId,SesjaId,Czas,Akcja,Tabela,Tekst,SklepId,TabId
+704884.0,112.0,2021-01-03 19:40:57.403,102,9,z 0 na 23,,51879.0
+3191010.0,79995.0,2025-08-21 14:21:04.350,401,3,33(FAKT_ODB)/'FV/25/08443'/20250821/2025,,704884.0
+
+========== TekstPoz ==========
+DokId,Kolejnosc,Znaczenie,Tekst
+704884.0,1,37,12X25 GwoŸdzie _TESRT
+704884.0,1,81,kg-
+704884.0,2,37,1.0X13mm TEKSY MASZYNOWE $$$
+704884.0,2,81,kg-
+
+========== PozDok ==========
+DokId,Kolejnosc,NrPozycji,TowId,TypPoz,IloscPlus,IloscMinus,PoziomCen,Metoda,CenaDomyslna,CenaPrzedRab,RabatProc,CenaPoRab,Wartosc,CenaDet,CenaMag,Stawka,TypTowaru,IleWZgrzewce,StawkaDod,Netto,Podatek,SledzPartii
+704884.0,1,1,6264.0,0,1.0,0.0,2,3,18.1382,18.14,0.0,18.14,18.14,18.6992,13.68,2300,0,0.0,,,,
+704884.0,2,2,65434.0,0,1.0,0.0,2,3,9.9593,9.96,0.0,9.96,9.96,10.4878,7.86,2300,0,0.0,,,,
