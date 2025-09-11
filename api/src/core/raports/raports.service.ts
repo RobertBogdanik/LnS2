@@ -27,6 +27,7 @@ export class RaportsService {
     async print(printer: string, pathToPdf: string) {
         const basicPath = this.configService.get<string>('BASIC_PATH');
         if (!basicPath) throw new Error('BASIC_PATH is not defined');
+        console.log('BASIC_PATH:', basicPath);
         const fullPath = path.join(basicPath, pathToPdf);
         console.log(`Printing ${fullPath} to printer ${printer} on ${platform()}`);
 
