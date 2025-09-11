@@ -28,6 +28,7 @@ export class RaportsService {
         const basicPath = this.configService.get<string>('BASIC_PATH');
         if (!basicPath) throw new Error('BASIC_PATH is not defined');
         const fullPath = path.join(basicPath, pathToPdf);
+        console.log(`Printing ${fullPath} to printer ${printer} on ${platform()}`);
 
         if(platform() === 'win32') {
             try {
