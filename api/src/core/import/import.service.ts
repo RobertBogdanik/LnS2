@@ -127,6 +127,7 @@ export class ImportService {
             // iteracja po arkuszach papierowych
             for (const sheet of paperBasedSheets) {
                 const sheetDirPath = path.join(basicPath, `imports/${countName}/process/${new Date().toISOString().slice(0, 10)}/${sheet.name}`);
+                await fs.mkdir(sheetDirPath, { recursive: true });
 
                 // wybranie pozycji z arkusza
                 const positionsForSheet = passedPositionsWithTowId.filter(pos => pos.arkusz.trim() === sheet.name);
