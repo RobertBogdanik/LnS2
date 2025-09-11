@@ -1,13 +1,18 @@
+// src/decorators/user-headers.decorator.ts
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { UserHeadersType } from '../middleware/headers.middleware';
 
 export const UserHeaders = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext) => {
+  (data: keyof UserHeadersType | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest();
-    return {
-      printer: request.headers['printer'],
-      workstation: request.headers['workstation'],
-      jwt: request.headers['authorization']?.replace('Bearer ', '') || request.headers['jwt'],
-        count: request.headers['selected-count']
-    };
+    const userHeaders: UserHeadersType = request['userHeaders'] || {};
+
+    // Jeśli podano konkretną właściwość, zwróć tylko ją
+    if (data) {
+      return userHeaders[data];
+    }
+
+    // W przeciwnym razie zwróć cały obiekt
+    return userHeaders;
   },
 );

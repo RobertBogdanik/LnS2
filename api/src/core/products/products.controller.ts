@@ -16,6 +16,7 @@ export class ProductsController {
     @Query('limit') limit: number,
     @UserHeaders() headers: UserHeadersType
   ) {
+    console.log(headers);
     if (!headers.decodedJwt?.usid) throw new UnauthorizedException('Brak uprawnień do podpisania arkusza');
     if (!headers.count) throw new UnauthorizedException('Brak liczeania');
 
