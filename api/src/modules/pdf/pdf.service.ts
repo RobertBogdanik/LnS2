@@ -153,15 +153,12 @@ export class PdfService {
 
 
         const filePath = `sheets/basic/${sheet.name}.pdf`;
-        // const rootPath = `C:\\git\\LnS2\\api\\files`;
         
         const basicPath = this.configService.get<string>('BASIC_PATH');
         if (!basicPath)  throw new Error('BASIC_PATH is not defined');
         const fullPath = path.join(basicPath, filePath);
         const pdfDoc = pdfMake.createPdf(docDefinition);
-        // pdfDoc.getBuffer((buffer: Buffer) => {
-        //     fs.writeFileSync(fullPath, buffer);
-        // });
+        
         return new Promise<string>((resolve, reject) => {
             pdfDoc.getBuffer((buffer: Buffer) => {
                 try {
@@ -321,11 +318,17 @@ export class PdfService {
         if (!basicPath)  throw new Error('BASIC_PATH is not defined');
         const fullPath = path.join(basicPath, filePath);
         const pdfDoc = pdfMake.createPdf(docDefinition);
-        pdfDoc.getBuffer((buffer: Buffer) => {
-            fs.writeFileSync(fullPath, buffer);
-        });
 
-        return filePath;
+        return new Promise<string>((resolve, reject) => {
+            pdfDoc.getBuffer((buffer: Buffer) => {
+            try {
+                fs.writeFileSync(fullPath, buffer);
+                resolve(filePath);
+            } catch (err) {
+                reject(err);
+            }
+            });
+        });
     }
 
     async generateDynamicSheetPdf(id: number) {
@@ -471,10 +474,15 @@ export class PdfService {
 
         const fullPath = path.join(basicPath, filePath);
         const pdfDoc = pdfMake.createPdf(docDefinition);
-        pdfDoc.getBuffer((buffer: Buffer) => {
-            fs.writeFileSync(fullPath, buffer);
+        return new Promise<string>((resolve, reject) => {
+            pdfDoc.getBuffer((buffer: Buffer) => {
+            try {
+                fs.writeFileSync(fullPath, buffer);
+                resolve(filePath);
+            } catch (err) {
+                reject(err);
+            }
+            });
         });
-
-        return filePath;
     }
 }

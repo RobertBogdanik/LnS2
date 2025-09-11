@@ -27,12 +27,15 @@ export class RaportsService {
     async print(printer: string, pathToPdf: string) {
         const basicPath = this.configService.get<string>('BASIC_PATH');
         if (!basicPath) throw new Error('BASIC_PATH is not defined');
-        console.log('BASIC_PATH:', basicPath, pathToPdf);
         const fullPath = path.join(basicPath, pathToPdf);
-        console.log(`Printing ${fullPath} to printer ${printer} on ${platform()}`);
 
         if(platform() === 'win32') {
             try {
+                const availablePrinters = await win.getPrinters();
+                const printerNames = availablePrinters.map(p => p.name);
+                if (!printerNames.includes(printer)) {
+                    throw new Error(`Printer "${printer}" does not exist`);
+                }
                 await win.print(fullPath, {
                     printer: printer,
                 });
@@ -42,6 +45,11 @@ export class RaportsService {
             }
         } else if(platform() === 'linux') {
             try {
+                const availablePrinters = await unix.getPrinters();
+                const printers = availablePrinters.map(p => p.printer);
+                if (!printers.includes(printer)) {
+                    throw new Error(`Printer "${printer}" does not exist`);
+                }
                 await unix.print(fullPath, printer);
                 return { message: 'Zlecono wydrukowanie raportu.', success: true, printer, path: fullPath };
             } catch (error) {
