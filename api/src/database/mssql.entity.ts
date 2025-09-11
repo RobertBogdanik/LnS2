@@ -12,11 +12,14 @@ export class User {
   @Column()
   card: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
   @Column({ default: false })
   isAdmin: boolean;
+
+  @Column({ default: true })
+  isActive: boolean;
 }
 
 // Counts Table
@@ -28,14 +31,17 @@ export class Count {
   @Column()
   name: string;
 
-  @Column({ type: 'timestamp', nullable: true })
-  closed_at: Date;
+  @Column({ type: 'datetime', nullable: true })
+  closed_at: Date | null;
 
   @Column({ default: true })
   is_active: boolean;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   open_at: Date;
+
+  @Column({ type: 'datetime', nullable: true })
+  final_at: Date | null;
 }
 
 // Sheets Table

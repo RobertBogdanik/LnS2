@@ -74,9 +74,10 @@ export default function DashboardLayout({
                         </DropdownMenuTrigger>
 
                         <DropdownMenuContent align="end" side="bottom">
-                            <DropdownMenuItem>Ustawienia</DropdownMenuItem>
-
-                            <DropdownMenuSub>
+                            <Link href="/v2/ustawienia">
+                                <DropdownMenuItem className="cursor-pointer w-full">Ustawienia</DropdownMenuItem>
+                            </Link>
+                            {/* <DropdownMenuSub>
                                 <DropdownMenuSubTrigger>
                                     Przełączanie bazy danych
                                 </DropdownMenuSubTrigger>
@@ -84,7 +85,7 @@ export default function DashboardLayout({
                                     <DropdownMenuItem>2025</DropdownMenuItem>
                                     <DropdownMenuItem>2024</DropdownMenuItem>
                                 </DropdownMenuSubContent>
-                            </DropdownMenuSub>
+                            </DropdownMenuSub> */}
                             <DropdownMenuItem>Wyloguj</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

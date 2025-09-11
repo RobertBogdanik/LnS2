@@ -27,7 +27,7 @@ export class AuthService {
     this.logger.log(`Last update: ${loginDto.lastUpdate}`);
 
     const user = await this.userRepo.findOne({
-      where: { card: loginDto.cardNumber },
+      where: { card: loginDto.cardNumber, isActive: true },
     });
 
     if (!user) {
@@ -59,7 +59,7 @@ export class AuthService {
 
   async verifyUser(UsId: number) {
     const user = await this.userRepo.findOne({
-      where: { id: UsId },
+      where: { id: UsId, isActive: true },
     });
 
     return !!user;
