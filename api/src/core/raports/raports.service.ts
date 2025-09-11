@@ -45,7 +45,7 @@ export class RaportsService {
                 await unix.print(fullPath, printer);
                 return { message: 'Zlecono wydrukowanie raportu.', success: true, printer, path: fullPath };
             } catch (error) {
-                throw new Error(`Failed to print: ${error.message}`);
+                throw new Error(`Failed to print: ${error}`);
             }
         } else {
             throw new Error(`Unsupported OS: ${platform()}`);
