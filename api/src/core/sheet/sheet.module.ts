@@ -4,10 +4,11 @@ import { SheetController } from './sheet.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Import, ImportPosition, PC5MarketView, Sheet, SheetPosition } from 'src/database/mssql.entity';
 import { PdfService } from 'src/modules/pdf/pdf.service';
+import { RaportsService } from '../raports/raports.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Sheet, SheetPosition, PC5MarketView, Import, ImportPosition])],
   controllers: [SheetController],
-  providers: [SheetService, PdfService],
+  providers: [SheetService, PdfService, RaportsService],
 })
 export class SheetModule {}

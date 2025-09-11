@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Import, ImportPosition, PC5MarketView, Sheet, SheetPosition } from 'src/database/mssql.entity';
 import { PdfService } from 'src/modules/pdf/pdf.service';
 import { In, IsNull, Like, Not, Raw, Repository } from 'typeorm';
+import { RaportsService } from '../raports/raports.service';
 
 @Injectable()
 export class SheetService {
@@ -23,7 +24,8 @@ export class SheetService {
         @InjectRepository(ImportPosition)
         private readonly importPositionRepo: Repository<ImportPosition>,
 
-        private readonly pdfService: PdfService
+        private readonly pdfService: PdfService,
+        private readonly raportsService: RaportsService,
     ) {}
 
     async findSheets(padding: number, limit: number, q: string, statuses: string[]) {
@@ -261,9 +263,8 @@ export class SheetService {
         const filePath = await this.pdfService.generateBasicSheetPdf(originSheet.id);
         console.log(`Generated PDF for sheet ${originSheet.id}: ${filePath}`);
 
-        // TODO: add print pdf
-
-        return {
+        if (typeof filePath !== 'string') {
+            return {
             id: originSheet.id,
             name: originSheet.name,
             products: productInSheetCount,
@@ -272,9 +273,23 @@ export class SheetService {
                 filePath
             },
             print: {
-                success: true,
-                printer: 'NARZEDZIA-01'
+                success: false,
+                printer: ''
             }
+        };
+        }
+
+        const printResult = await this.raportsService.print('Akwarium', filePath);
+        
+        return {
+            id: originSheet.id,
+            name: originSheet.name,
+            products: productInSheetCount,
+            basicPdf: {
+                success: true,
+                filePath
+            },
+            print: printResult
         };
 
     }

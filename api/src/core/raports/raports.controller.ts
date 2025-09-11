@@ -1,14 +1,22 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
+import { RaportsService } from './raports.service';
 
 @Controller('raports')
 export class RaportsController {
+    constructor(
+        private readonly raportsService: RaportsService,
+    ) {}
 
     @Get('printers')
     async getPrinters() {
-        return [
-            "NARZEDZIA-01",
-            "NARZEDZIA-02",
-            "Farby01"
-        ]
+        return await this.raportsService.getPrinters();
+    }
+
+    @Get('print')
+    async print(
+        @Query('printer') printer: string,
+        @Query('pathToPdf') pathToPdf: string,
+    ) {
+        return await this.raportsService.print(printer, pathToPdf);
     }
 }
