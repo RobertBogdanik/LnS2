@@ -10,17 +10,23 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
-import { LuFileSpreadsheet, LuStamp } from "react-icons/lu";
+import { LuFileSpreadsheet } from "react-icons/lu";
 import { MdOutlineAdd } from "react-icons/md";
-import { CiImport, CiExport } from "react-icons/ci";
+import { CiImport, CiExport, CiSettings } from "react-icons/ci";
 import SheetCard from "@/components/sheet/sheetCard"
 import ProductCard from "@/components/product/productCard"
+import { PiStampThin } from "react-icons/pi";
 
 export default function DashboardLayout({
     children,
 }: Readonly<{
     children: React.ReactNode
 }>) {
+    const logout = () => {
+        sessionStorage.clear();
+        window.location.href = '/';
+    }
+
     return (
         <div className="flex flex-col min-h-screen">
             <ProductCard />
@@ -47,6 +53,12 @@ export default function DashboardLayout({
                     <Link href="/v2/eksport">
                         <Button variant="link"><CiExport />Eksport</Button>
                     </Link>
+                    <Link href="/v2/arkusze/podpisz">
+                        <Button variant="link"><PiStampThin />Podpisywanie</Button>
+                    </Link>
+                    <Link href="/v2/ustawienia">
+                        <Button variant="link"><CiSettings />Ustawienia</Button>
+                    </Link>
                     {/* <Link href="/v2/raporty">
                         <Button variant="link"><IoDocumentTextOutline />Raporty</Button>
                     </Link> */}
@@ -56,13 +68,16 @@ export default function DashboardLayout({
                     <div className="relative">
                         <Input placeholder="Szukaj..." className="w-48 pr-10" />
                     </div>
+                    <Button onClick={logout} variant="outline" className="relative p-2 rounded-md hover:bg-accent focus:outline-none">
+                        Wyloguj
+                    </Button>
 
-                    <Link href="/v2/arkusze/podpisz" className="relative flex items-center justify-center h-10 w-10 rounded-md bg-transparent hover:bg-accent focus:outline-none">
+                    {/* <Link href="/v2/arkusze/podpisz" className="relative flex items-center justify-center h-10 w-10 rounded-md bg-transparent hover:bg-accent focus:outline-none">
                         <LuStamp />
                         <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />
-                    </Link>
+                    </Link> */}
 
-                    <DropdownMenu>
+                    {/* <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Avatar className="cursor-pointer">
                                 <AvatarImage src="/avatar.png" alt="Avatar" />
@@ -74,7 +89,7 @@ export default function DashboardLayout({
                             <Link href="/v2/ustawienia">
                                 <DropdownMenuItem className="cursor-pointer w-full">Ustawienia</DropdownMenuItem>
                             </Link>
-                            {/* <DropdownMenuSub>
+                            <DropdownMenuSub>
                                 <DropdownMenuSubTrigger>
                                     Przełączanie bazy danych
                                 </DropdownMenuSubTrigger>
@@ -82,10 +97,10 @@ export default function DashboardLayout({
                                     <DropdownMenuItem>2025</DropdownMenuItem>
                                     <DropdownMenuItem>2024</DropdownMenuItem>
                                 </DropdownMenuSubContent>
-                            </DropdownMenuSub> */}
+                            </DropdownMenuSub>
                             <DropdownMenuItem>Wyloguj</DropdownMenuItem>
                         </DropdownMenuContent>
-                    </DropdownMenu>
+                    </DropdownMenu> */}
                 </div>
             </nav >
             <SheetCard />
