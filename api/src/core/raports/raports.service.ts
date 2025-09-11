@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { getPrinters } from "unix-print";
 import * as unix  from "unix-print";
 import * as win from "pdf-to-printer";
-import path from 'path';
+import * as path from 'path';
 import {platform} from 'os';
 
 @Injectable()
