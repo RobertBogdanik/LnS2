@@ -42,7 +42,7 @@ export class RaportsService {
             }
         } else if(platform() === 'linux') {
             try {
-                await unix.print(printer, fullPath);
+                await unix.print(fullPath, printer);
                 return { message: 'Zlecono wydrukowanie raportu.', success: true, printer, path: fullPath };
             } catch (error) {
                 throw new Error(`Failed to print: ${error.message}`);
