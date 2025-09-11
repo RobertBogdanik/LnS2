@@ -1,5 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { SheetService } from './sheet.service';
+import { UserHeaders } from 'src/decorators/headers.decorator';
+import { UserHeadersType } from 'src/middleware/headers.middleware';
 
 @Controller('sheet')
 export class SheetController {
@@ -41,9 +43,10 @@ export class SheetController {
   @Post('')
   async createSheet(
     @Body('origin') originId: number,
-    @Body('piku') piku: string
+    @Body('piku') piku: string,
+    @UserHeaders() headers: UserHeadersType
   ) {
-    return this.sheetService.createSheet(originId, piku);
+    return this.sheetService.createSheet(originId, piku, headers);
   }
 
   @Post('temp')

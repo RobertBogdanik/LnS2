@@ -4,6 +4,7 @@ import { Import, ImportPosition, PC5MarketView, Sheet, SheetPosition } from 'src
 import { PdfService } from 'src/modules/pdf/pdf.service';
 import { In, IsNull, Like, Not, Raw, Repository } from 'typeorm';
 import { RaportsService } from '../raports/raports.service';
+import { UserHeadersType } from 'src/middleware/headers.middleware';
 
 @Injectable()
 export class SheetService {
@@ -233,7 +234,7 @@ export class SheetService {
         }
     }
 
-    async createSheet(originId: number, piku: string) {   
+    async createSheet(originId: number, piku: string, headers: UserHeadersType) {   
         const originSheet = await this.sheetRepo.findOne({ where: { id: originId, temp: true, active: true } });
 
         if(!originSheet) return new BadRequestException(['Nie znaleziono tymczasowego arkusza o podanym ID.']);
@@ -263,7 +264,7 @@ export class SheetService {
         const filePath = await this.pdfService.generateBasicSheetPdf(originSheet.id);
         console.log(`Generated PDF for sheet ${originSheet.id}: ${filePath}`);
 
-        if (typeof filePath !== 'string') {
+        if (typeof filePath !== 'string' || !headers.printer) {
             return {
             id: originSheet.id,
             name: originSheet.name,
@@ -279,7 +280,8 @@ export class SheetService {
         };
         }
 
-        const printResult = await this.raportsService.print('Akwarium', filePath);
+        const printer = headers.printer
+        const printResult = await this.raportsService.print(printer, filePath);
         
         return {
             id: originSheet.id,

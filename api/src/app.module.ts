@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Count, CountProductStatusView, Export, ExportPosition, Import, ImportPosition, PC5MarketView, Sheet, SheetPosition, User, Workstation } from './database/mssql.entity';
 import { CoreModule } from './core/core.module';
@@ -6,6 +6,7 @@ import { SysConfigModule } from './config/sysconfig.module';
 import { PdfModule } from './modules/pdf/pdf.module';
 import { ConfigModule } from '@nestjs/config';
 import { CronModule } from './module/cron/cron.module';
+import { HeadersMiddleware } from './middleware/headers.middleware';
 
 @Module({
   imports: [
@@ -39,4 +40,10 @@ import { CronModule } from './module/cron/cron.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(HeadersMiddleware)
+      .forRoutes('*');
+  }
+}
