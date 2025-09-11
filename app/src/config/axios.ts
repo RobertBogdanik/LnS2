@@ -12,12 +12,17 @@ axiosInterface.interceptors.request.use(
     if (typeof window !== 'undefined') {
       const token = window.sessionStorage.getItem('jwt');
       const selectedCount = window.sessionStorage.getItem('selectedCount');
+      const printer = window.localStorage.getItem('printer');
       
       if (selectedCount) {
         config.headers['X-Selected-Count'] = selectedCount;
       }
       if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      if (printer) {
+        config.headers['printer'] = printer;
       }
     }
     return config;
