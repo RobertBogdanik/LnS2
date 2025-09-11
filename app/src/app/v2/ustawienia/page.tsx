@@ -3,13 +3,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
-    TableFooter,
     TableHead,
     TableHeader,
     TableRow,
@@ -20,9 +17,23 @@ import { toast } from "sonner";
 
 
 const SettingsPage = () => {
-    const [users, setUsers] = useState<Array<any>>([]);
+    type User = {
+        id: number;
+        username: string;
+        card: string;
+        created_at: string;
+        isAdmin: boolean;
+    };
+    const [users, setUsers] = useState<User[]>([]);
     const [newUser, setNewUser] = useState<{ username: string; card: string; isAdmin: boolean }>({ username: "", card: "", isAdmin: false });
-    const [counts, setCounts] = useState<Array<any>>([]);
+    type Count = {
+        id: number;
+        name: string;
+        open_at: string;
+        final_at: string;
+        closed_at: string;
+    };
+    const [counts, setCounts] = useState<Count[]>([]);
     const [newCount, setNewCount] = useState<{ name: string; open_at: string; final_at: string; closed_at: string }>({ name: "", open_at: "", final_at: "", closed_at: "" });
 
     const fetchData = async () => {
@@ -86,11 +97,11 @@ const SettingsPage = () => {
         }
     }
 
-    const modifyUserField = (id: number, field: string, value: any) => {
+    const modifyUserField = (id: number, field: string, value: string|number|Date|boolean) => {
         setUsers(users.map(user => user.id === id ? { ...user, [field]: value } : user));
     }
 
-    const modifyCountField = (id: number, field: string, value: any) => {
+    const modifyCountField = (id: number, field: string, value: string|number|Date|boolean) => {
         setCounts(counts.map(count => count.id === id ? { ...count, [field]: value } : count));
     }
 
