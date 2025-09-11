@@ -2,9 +2,9 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Import, ImportPosition, PC5MarketView, Sheet, SheetPosition } from 'src/database/mssql.entity';
 import { PdfService } from 'src/modules/pdf/pdf.service';
-import { In, IsNull, Like, Not, Raw, Repository } from 'typeorm';
+import { In, IsNull, Not, Raw, Repository } from 'typeorm';
 import { RaportsService } from '../raports/raports.service';
-import { UserHeadersType } from 'src/middleware/headers.middleware';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class SheetService {
@@ -27,6 +27,7 @@ export class SheetService {
 
         private readonly pdfService: PdfService,
         private readonly raportsService: RaportsService,
+        private readonly authService: AuthService
     ) {}
 
     async findSheets(padding: number, limit: number, q: string, statuses: string[]) {
@@ -99,19 +100,22 @@ export class SheetService {
         return results;
     }
 
-    async findSheetsToSign() {
-        const UsId = 7; // TODO: dynamic user id
+    async findSheetsToSign(UsId: number, count: number) {
+        const userExists = await this.authService.verifyUser(UsId);
+        if (!userExists) throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+
         return this.sheetRepo.find({
-            where: { signing_at: IsNull(), closed_at: Not(IsNull()), active: true, author: { id: UsId } },
+            where: { signing_at: IsNull(), closed_at: Not(IsNull()), active: true, author: { id: UsId }, count: { id: count } },
             order: { created_at: 'DESC' }
         });
     }
 
-    async findSheetsToSignPos(id: number) {
-        const UsId = 7; // TODO: dynamic user id
+    async findSheetsToSignPos(id: number, UsId: number, count: number) {
+        const userExists = await this.authService.verifyUser(UsId);
+        if (!userExists) throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
 
         const sheet = await this.sheetRepo.findOne({
-            where: { id, signing_at: IsNull(), closed_at: Not(IsNull()), author: { id: UsId } }
+            where: { id, signing_at: IsNull(), closed_at: Not(IsNull()), author: { id: UsId }, count: { id: count } },
         });
 
         if (!sheet) {
@@ -234,10 +238,10 @@ export class SheetService {
         }
     }
 
-    async createSheet(originId: number, piku: string, headers: UserHeadersType) {   
+    async createSheet(originId: number, piku: string, printerName: string) {   
         const originSheet = await this.sheetRepo.findOne({ where: { id: originId, temp: true, active: true } });
 
-        if(!originSheet) return new BadRequestException(['Nie znaleziono tymczasowego arkusza o podanym ID.']);
+        if (!originSheet) return new BadRequestException(['Nie znaleziono tymczasowego arkusza o podanym ID.']);
 
         const productInSheetCount = await this.sheetPositionRepo.count({
             where: { sheet: { id: originId } }
@@ -253,18 +257,14 @@ export class SheetService {
         });
 
         const sheetName = `${piku}${yyyyMMdd}${(sheetCount + 1).toString().padStart(3, '0')}`;
-
-        console.log(`Creating new sheet with name: ${sheetName}`);
-
         originSheet.temp = false;
         originSheet.dynamic = false;
         originSheet.name = sheetName;
         await this.sheetRepo.save(originSheet);
 
         const filePath = await this.pdfService.generateBasicSheetPdf(originSheet.id);
-        console.log(`Generated PDF for sheet ${originSheet.id}: ${filePath}`);
 
-        if (typeof filePath !== 'string' || !headers.printer) {
+        if (typeof filePath !== 'string' || !printerName) {
             return {
             id: originSheet.id,
             name: originSheet.name,
@@ -280,8 +280,7 @@ export class SheetService {
         };
         }
 
-        const printer = headers.printer
-        const printResult = await this.raportsService.print(printer, filePath);
+        const printResult = await this.raportsService.print(printerName, filePath);
         
         return {
             id: originSheet.id,
@@ -293,11 +292,11 @@ export class SheetService {
             },
             print: printResult
         };
-
     }
 
-    async createTempSheet(products: any[], countId: number, authorId: number) {
-        console.log('Creating temporary sheet with products:', products);
+    async createTempSheet(products: any[], countId: number, UsId: number) {
+        const userExists = await this.authService.verifyUser(UsId);
+        if (!userExists) throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
 
         const pass: Array<PC5MarketView> = []
         const notActive: Array<PC5MarketView> = []
@@ -349,12 +348,6 @@ export class SheetService {
             }
         }
 
-        console.log('Sheet creation summary:');
-        console.log('Passed products:', pass.length);
-        console.log('Not active products:', notActive.length);
-        console.log('Used products:', used.length);
-        console.log('Not found products:', notFound.length);
-
         if (pass.length > 0) {
             const sheetCount = await this.sheetRepo.count({ where: { count: { id: countId } } });
 
@@ -366,7 +359,7 @@ export class SheetService {
                 name: `Temporary Sheet - ${sheetCount + 1}`,
                 comment: '',
                 dynamic: false,
-                author: { id: authorId },
+                author: { id: UsId },
                 created_at: new Date()
             });
             await this.sheetRepo.save(newSheet);
@@ -427,9 +420,9 @@ export class SheetService {
         }
     }
 
-    async createDynamicSheet(piku: string) {
-        const countId = 3
-        const author = 7;
+    async createDynamicSheet(piku: string, UsId: number, count: number, printerName: string) {
+        const userExists = await this.authService.verifyUser(UsId);
+        if (!userExists) throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
 
         const today = new Date();
         const yyyyMMdd = today.toISOString().slice(2, 10).replace(/-/g, '');
@@ -444,47 +437,61 @@ export class SheetService {
 
         const newSheet = await this.sheetRepo.save({
             temp: false,
-            count: { id: countId },
+            count: { id: count },
             mainCount: true,
             active: true,
             dynamic: true,
             name: sheetName,
             comment: '',
-            author: { id: author },
+            author: { id: UsId },
             created_at: new Date()
         });
 
         const filePath = await this.pdfService.generateDynamicSheetPdf(newSheet.id);
 
+        if (typeof filePath !== 'string' || !printerName) {
+            return {
+                createdSheet: true,
+                sheet: newSheet,
+                filePath,
+                print: {
+                    status: false,
+                    filePath: ''
+                }
+            }
+        }
+        const printer = printerName
+        const printResult = await this.raportsService.print(printer, filePath);
+
         return {
             createdSheet: true,
             sheet: newSheet,
             filePath,
-            print: {
-                status: true,
-                filePath
-            }
+            print: printResult
         }
     }
 
-    async closeSheet(id: number) {
-        const sheet = await this.sheetRepo.findOne({ where: { id, active: true } });
+    async closeSheet(id: number, UsId: number, count: number) {
+        const sheet = await this.sheetRepo.findOne({ where: { id, active: true, count: {id: count } } });
         if (!sheet) throw new Error('Sheet not found');
+        
+        const userExists = await this.authService.verifyUser(UsId);
+        if (!userExists) throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
 
         if (sheet.closed_at) throw new Error('Sheet is already closed');
 
         await this.sheetRepo.manager.transaction(async transactionalEntityManager => {
             sheet.closed_at = new Date();
-            sheet.closed_by = { id: 7 } as any; // TODO: dynamic user id
+            sheet.closed_by = { id: UsId } as any;
             await transactionalEntityManager.save(sheet);
 
             const newImport = transactionalEntityManager.create(Import, {
-            type: 4,
-            importedAt: new Date(),
-            sheet: { id },
-            deviceName: 'ZAMKNIĘCIE',
-            isDisabled: false,
-            author: { id: 7 } // TODO: dynamic user id
+                type: 4,
+                importedAt: new Date(),
+                sheet: { id },
+                deviceName: 'ZAMKNIĘCIE',
+                isDisabled: false,
+                author: { id: UsId }
             });
             await transactionalEntityManager.save(newImport);
         });
@@ -493,9 +500,14 @@ export class SheetService {
 
     async signSheet(
         id: number,
-        positions: any[]
+        positions: any[],
+        UsId: number,
+        count: number
     ) {
-        const sheet = await this.sheetRepo.findOne({ where: { id, active: true } });
+        const userExists = await this.authService.verifyUser(UsId);
+        if (!userExists) throw new Error('User not found');
+
+        const sheet = await this.sheetRepo.findOne({ where: { id, active: true, count: { id: count } } });
         if (!sheet) throw new Error('Sheet not found');
 
         if (sheet.signing_at) throw new Error('Sheet is already signed');
@@ -522,7 +534,7 @@ export class SheetService {
                 sheet: { id },
                 deviceName: 'KOREKTA',
                 isDisabled: false,
-                author: { id: 7 } // TODO: dynamic user id
+                author: { id: UsId } 
             });
             await transactionalEntityManager.save(newImport);
 
@@ -539,18 +551,20 @@ export class SheetService {
             }
 
             sheet.signing_at = new Date();
-            sheet.signing_by = { id: 7 } as any; // TODO: dynamic user id
+            sheet.signing_by = { id: UsId } as any;
             await transactionalEntityManager.save(sheet);
         });
 
         return { success: true };
     }
 
-    async deleteSheet(id: number) {
+    async deleteSheet(id: number, UsId: number) {
         const sheet = await this.sheetRepo.findOne({ where: { id } });
         if (!sheet) throw new Error('Sheet not found');
+        if (!sheet.active) throw new Error('Sheet is already deleted');
 
-        const UsId = 7; // TODO: dynamic user id
+        // const userExists = await this.authService.verifyUser(UsId);
+        // if (!userExists) throw new Error('User not found');
 
         sheet.active = false;
         sheet.removed_at = new Date();

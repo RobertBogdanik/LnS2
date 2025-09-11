@@ -7,6 +7,7 @@ import { PdfModule } from './modules/pdf/pdf.module';
 import { ConfigModule } from '@nestjs/config';
 import { CronModule } from './module/cron/cron.module';
 import { HeadersMiddleware } from './middleware/headers.middleware';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -36,6 +37,10 @@ import { HeadersMiddleware } from './middleware/headers.middleware';
     SysConfigModule,
     PdfModule,
     CronModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'defaultSecretKey',
+      signOptions: { expiresIn: '365d' },
+    }),
   ],
   controllers: [],
   providers: [],

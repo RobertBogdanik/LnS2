@@ -15,10 +15,11 @@ axiosInterface.interceptors.request.use(
       const printer = window.localStorage.getItem('printer');
       
       if (selectedCount) {
-        config.headers['X-Selected-Count'] = selectedCount;
+        config.headers['selected-count'] = selectedCount;
       }
       if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
+        config.headers['jwt'] = token;
       }
 
       if (printer) {

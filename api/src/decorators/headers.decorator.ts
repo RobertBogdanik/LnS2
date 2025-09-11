@@ -6,8 +6,8 @@ export const UserHeaders = createParamDecorator(
     return {
       printer: request.headers['printer'],
       workstation: request.headers['workstation'],
-      jwt: request.headers['authorization']?.replace('Bearer ', '') || 
-           request.headers['jwt']
+      jwt: request.headers['authorization']?.replace('Bearer ', '') || request.headers['jwt'],
+        count: request.headers['selected-count']
     };
   },
 );

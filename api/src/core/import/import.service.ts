@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Import, ImportPosition, PC5MarketView, Sheet, SheetPosition } from 'src/database/mssql.entity';
+import { Count, Import, ImportPosition, PC5MarketView, Sheet, SheetPosition } from 'src/database/mssql.entity';
 import { In, Repository, IsNull } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import { AuthService } from '../auth/auth.service';
 
 interface DataIn {
     name: string;
@@ -22,12 +23,19 @@ export class ImportService {
         @InjectRepository(PC5MarketView) private pc5MarketViewRepository: Repository<PC5MarketView>,
         @InjectRepository(Import) private importRepository: Repository<Import>,
         @InjectRepository(ImportPosition) private importPositionRepository: Repository<ImportPosition>,
-        private configService: ConfigService
+        @InjectRepository(Count) private countRepository: Repository<Count>,
+        private configService: ConfigService,
+        private authService: AuthService
     ) {}
 
-    async importData(files: DataIn[]) {
-        const countName = '2025-TEST'
-        const author = 7
+    async importData(files: DataIn[], UsId: number, count: number) {        
+        const userExists = await this.authService.verifyUser(UsId);
+        if (!userExists) throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+
+        const countRecord = await this.countRepository.findOne({ where: { id: count } });
+        if (!countRecord) throw new BadRequestException(['Nie znaleziono liczenia o podanym ID.']);
+
+        const countName = countRecord.name;
 
         const basicPath = this.configService.get<string>('BASIC_PATH');
         if (!basicPath)  throw new Error('BASIC_PATH is not defined');
@@ -165,7 +173,7 @@ export class ImportService {
                 await this.importRepository.manager.transaction(async transactionalEntityManager => {
                     const newImport = await transactionalEntityManager.save(this.importRepository.create({
                         sheet: sheet, 
-                        author: { id: author }, 
+                        author: { id: UsId }, 
                         deviceName: file.name[0],
                         isDisabled: false,
                         importedAt: new Date()
@@ -233,7 +241,7 @@ export class ImportService {
 
                     const newImport = await transactionalEntityManager.save(this.importRepository.create({
                         sheet: sheet, 
-                        author: { id: author }, 
+                        author: { id: UsId }, 
                         deviceName: file.name[0],
                         isDisabled: false,
                         importedAt: new Date()

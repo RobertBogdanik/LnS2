@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UnauthorizedException } from '@nestjs/common';
 import { SheetService } from './sheet.service';
 import { UserHeaders } from 'src/decorators/headers.decorator';
 import { UserHeadersType } from 'src/middleware/headers.middleware';
@@ -23,14 +23,24 @@ export class SheetController {
   }
 
   @Get('toSign')
-  async findSheetsToSign() {
-    return this.sheetService.findSheetsToSign();
+  async findSheetsToSign(@UserHeaders() headers: UserHeadersType) {
+    
+    if (!headers.decodedJwt?.usid) throw new UnauthorizedException('Brak uprawnień do podpisania arkusza');
+    if (!headers.count) throw new UnauthorizedException('Brak liczeania');
+
+    return this.sheetService.findSheetsToSign(headers.decodedJwt.usid, headers.count);
   }
 
   
   @Get('toSign/:id')
-  async findSheetsToSignPos(@Param('id') id: number) {
-    return this.sheetService.findSheetsToSignPos(id);
+  async findSheetsToSignPos(
+    @Param('id') id: number,
+    @UserHeaders() headers: UserHeadersType
+  ) {
+    if (!headers.decodedJwt?.usid) throw new UnauthorizedException('Brak uprawnień do podpisania arkusza');
+    if (!headers.count) throw new UnauthorizedException('Brak liczeania');
+    
+    return this.sheetService.findSheetsToSignPos(id, headers.decodedJwt.usid, headers.count);
   }
 
   @Get(':id')
@@ -46,58 +56,63 @@ export class SheetController {
     @Body('piku') piku: string,
     @UserHeaders() headers: UserHeadersType
   ) {
-    return this.sheetService.createSheet(originId, piku, headers);
+    if (!headers.printer) throw new UnauthorizedException('Brak nazwy drukarki');
+
+    return this.sheetService.createSheet(originId, piku, headers.printer);
   }
 
   @Post('temp')
   async createTempSheet(
-    @Body('products') products: any[]
+    @Body('products') products: any[],
+    @UserHeaders() headers: UserHeadersType
   ) {
-    // TODO: make dynamic
-    return await this.sheetService.createTempSheet(products, 3, 7);
+    if (!headers.decodedJwt?.usid) throw new UnauthorizedException('Brak uprawnień do podpisania arkusza');
+    if (!headers.count) throw new UnauthorizedException('Brak liczeania');
+    
+    return await this.sheetService.createTempSheet(products, headers.count, headers.decodedJwt.usid);
   }
 
   @Post('dynamic')
   async createDynamicSheet(
-    @Body('piku') piku: string
+    @Body('piku') piku: string,
+    @UserHeaders() headers: UserHeadersType
   ) {
-    return await this.sheetService.createDynamicSheet(piku);
+    if (!headers.decodedJwt?.usid) throw new UnauthorizedException('Brak uprawnień do podpisania arkusza');
+    if (!headers.count) throw new UnauthorizedException('Brak liczeania');
+    if (!headers.printer) throw new UnauthorizedException('Brak nazwy drukarki');
+
+    return await this.sheetService.createDynamicSheet(piku, headers.decodedJwt.usid, headers.count, headers.printer);
   }
 
   @Put(':id/close')
   async closeSheet(
-    @Param('id') id: number
+    @Param('id') id: number,
+    @UserHeaders() headers: UserHeadersType
   ) {
-    return this.sheetService.closeSheet(id);
+    if (!headers.decodedJwt?.usid) throw new UnauthorizedException('Brak uprawnień do podpisania arkusza');
+    if (!headers.count) throw new UnauthorizedException('Brak liczeania');
+
+    return this.sheetService.closeSheet(id, headers.decodedJwt.usid, headers.count);
   }
 
   @Put(':id/sign')
   async signSheet(
     @Param('id') id: number,
-    @Body('positions') positions: any[]
+    @Body('positions') positions: any[],
+    @UserHeaders() headers: UserHeadersType
   ) {
-    return this.sheetService.signSheet(id, positions);
-  }
+    if (!headers.decodedJwt?.usid) throw new UnauthorizedException('Brak uprawnień do podpisania arkusza');
+    if (!headers.count) throw new UnauthorizedException('Brak liczeania');
 
-  @Put(':id/product')
-  async updateProduct() {
-    // return this.sheetService.updateProduct();
-  }
-
-  @Put(':id/open')
-  async openSheet() {
-    // return this.sheetService.openSheet();
+    return this.sheetService.signSheet(id, positions, headers.decodedJwt.usid, headers.count);
   }
 
   @Delete(':id')
   async deleteSheet(
-    @Param('id') id: number
+    @Param('id') id: number,
+    @UserHeaders() headers: UserHeadersType
   ) {
-    return this.sheetService.deleteSheet(id);
-  }
-
-  @Delete(':id/product')
-  async deleteProduct() {
-    // return this.sheetService.deleteProduct();
+    if (!headers.decodedJwt?.usid) throw new UnauthorizedException('Brak uprawnień do usunięcia arkusza');
+    return this.sheetService.deleteSheet(id, headers.decodedJwt.usid);
   }
 }

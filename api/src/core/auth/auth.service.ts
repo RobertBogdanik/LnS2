@@ -1,9 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Count, PC5MarketView, User, Workstation } from 'src/database/mssql.entity';
-import { MoreThan, Repository } from 'typeorm';
+import { Count, User } from 'src/database/mssql.entity';
+import { Repository } from 'typeorm';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 
@@ -18,7 +16,6 @@ export class AuthService {
     
     @InjectRepository(Count)
     private readonly countRepo: Repository<Count>,
-
 
     private jwtService: JwtService
   ) {}
@@ -58,6 +55,13 @@ export class AuthService {
       token,
       counts,
     };
+  }
 
+  async verifyUser(UsId: number) {
+    const user = await this.userRepo.findOne({
+      where: { id: UsId },
+    });
+
+    return !!user;
   }
 }
