@@ -7,10 +7,11 @@ import { PdfService } from 'src/modules/pdf/pdf.service';
 import { RaportsService } from '../raports/raports.service';
 import { AuthService } from '../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
+import { WinstonLogger } from 'src/config/winston.logger';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Sheet, SheetPosition, PC5MarketView, Import, ImportPosition, User, Count])],
   controllers: [SheetController],
-  providers: [SheetService, PdfService, RaportsService, AuthService, JwtService],
+  providers: [SheetService, PdfService, RaportsService, AuthService, JwtService, WinstonLogger],
 })
 export class SheetModule {}

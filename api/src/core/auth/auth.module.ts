@@ -6,6 +6,7 @@ import { Count, User } from 'src/database/mssql.entity';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from 'src/config/jwt/jwt.strategy';
+import { WinstonLogger } from 'src/config/winston.logger';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { JwtStrategy } from 'src/config/jwt/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, WinstonLogger],
   exports: [AuthService],
 })
 

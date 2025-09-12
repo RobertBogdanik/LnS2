@@ -8,6 +8,11 @@ import { ConfigModule } from '@nestjs/config';
 import { CronModule } from './module/cron/cron.module';
 import { HeadersMiddleware } from './middleware/headers.middleware';
 import { JwtModule } from '@nestjs/jwt';
+import { WinstonLogger } from './config/winston.logger';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { LoggingInterceptor } from './interceptors/logging.interceptor';
+import { RequestAwareLogger } from './config/request-aware.logger';
+import { RequestIdMiddleware } from './middleware/request-id.middleware';
 
 @Module({
   imports: [
@@ -43,12 +48,22 @@ import { JwtModule } from '@nestjs/jwt';
     }),
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    WinstonLogger,
+    RequestAwareLogger,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+  ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(HeadersMiddleware)
+      .forRoutes('*');
+    consumer
+      .apply(RequestIdMiddleware)
       .forRoutes('*');
   }
 }

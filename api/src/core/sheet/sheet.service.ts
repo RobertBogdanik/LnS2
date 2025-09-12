@@ -5,6 +5,7 @@ import { PdfService } from 'src/modules/pdf/pdf.service';
 import { In, IsNull, Not, Raw, Repository } from 'typeorm';
 import { RaportsService } from '../raports/raports.service';
 import { AuthService } from '../auth/auth.service';
+import { WinstonLogger } from 'src/config/winston.logger';
 
 @Injectable()
 export class SheetService {
@@ -27,7 +28,9 @@ export class SheetService {
 
         private readonly pdfService: PdfService,
         private readonly raportsService: RaportsService,
-        private readonly authService: AuthService
+        private readonly authService: AuthService,
+        
+        private readonly logger: WinstonLogger
     ) {}
 
     async findSheets(padding: number, limit: number, q: string, statuses: string[]) {
@@ -38,6 +41,7 @@ export class SheetService {
         });
 
         let filteredSheets = allSheets;
+        this.logger.log(`Total sheets fetched: ${allSheets.length}`);
 
         // Filter by statuses
         if (statuses && statuses.length > 0) {
@@ -48,6 +52,7 @@ export class SheetService {
                 return false;
             });
         }
+        this.logger.log(`Sheets after status filtering: ${filteredSheets.length}`);
 
         // Filter by query
         if (q && q.trim().length > 0) {
@@ -56,9 +61,12 @@ export class SheetService {
                 queryLower.every(query => sheet.name?.toLowerCase().includes(query) || sheet.comment?.toLowerCase().includes(query))
             );
         }
+        this.logger.log(`Sheets after query filtering: ${filteredSheets.length}`);
 
         // Apply padding and limit
         const pagedSheets = filteredSheets.slice(padding, padding + limit);
+
+        this.logger.log(`Returning sheets from ${padding} to ${padding + limit}, total: ${pagedSheets.length}`);
 
         return {
             total: filteredSheets.length,
@@ -95,14 +103,19 @@ export class SheetService {
                 }
             });
 
-        console.log('Dynamic Piku results:', results);
+        this.logger.log(`Dynamic Piku results: ${JSON.stringify(results)}`);
 
         return results;
     }
 
     async findSheetsToSign(UsId: number, count: number) {
         const userExists = await this.authService.verifyUser(UsId);
-        if (!userExists) throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+        if (!userExists) {
+            this.logger.error(`User not found: ${UsId}`);
+            throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+        }
+
+        this.logger.log(`Fetching sheets to sign for user: ${UsId}, count: ${count}`);
 
         return this.sheetRepo.find({
             where: { signing_at: IsNull(), closed_at: Not(IsNull()), active: true, author: { id: UsId }, count: { id: count } },
@@ -112,13 +125,17 @@ export class SheetService {
 
     async findSheetsToSignPos(id: number, UsId: number, count: number) {
         const userExists = await this.authService.verifyUser(UsId);
-        if (!userExists) throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+        if (!userExists) {
+            this.logger.error(`User not found: ${UsId}`);
+            throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+        }
 
         const sheet = await this.sheetRepo.findOne({
             where: { id, signing_at: IsNull(), closed_at: Not(IsNull()), author: { id: UsId }, count: { id: count } },
         });
 
         if (!sheet) {
+            this.logger.error(`Sheet not found: ${id}`);
             throw new BadRequestException(['Nie znaleziono arkusza o podanym ID.']);
         }
 
@@ -129,17 +146,22 @@ export class SheetService {
             where: { import: { id: In(imports.map(i => i.id)) } },
             relations: ['import', 'sheetPosition']
         });
+        this.logger.log(`Found ${imports.length} imports and ${importPositions.length} import positions for sheet ID: ${id}`);
 
         const sheetPos = await this.sheetPositionRepo.find({
             where: { sheet: { id } },
             order: { productId: 'ASC' }
         });
+        this.logger.log(`Found ${sheetPos.length} sheet positions for sheet ID: ${id}`);
 
         const productsDetails = await this.pc5MarketViewRepo.find({
             where: { TowId: In(sheetPos.map(p => p.productId)) }
         });
+        this.logger.log(`Found ${productsDetails.length} product details for sheet ID: ${id}`);
 
         sheetPos.forEach(position => {
+            this.logger.log(`Processing sheet position: ${position.id}`);
+
             // Sum expectedQuantity from all importPositions for this sheetPosition
             const relatedImportPositions = importPositions.filter(
                 pos => pos.sheetPosition?.id === position.id && pos.isDisabled === false
@@ -152,11 +174,15 @@ export class SheetService {
             (position as any).expected = exp;
             (position as any).delta = counted - exp;
 
+            this.logger.log(`Sheet position ${position.id} - counted: ${counted}, expected: ${exp}, delta: ${counted - exp}`);
+
             // Attach productDetails from PC5MarketView
             const productDetail = productsDetails.find(p => p.TowId === position.productId);
             (position as any).onShelf = Number(((productDetail?.StockQty || 0) + (counted - exp)).toFixed(3));
             (position as any).onPcMarket = productDetail?.StockQty || 0;
             (position as any).newDelta = counted - exp;
+
+            this.logger.log(`Sheet position ${position.id} - onShelf: ${(position as any).onShelf}, onPcMarket: ${(position as any).onPcMarket}, newDelta: ${(position as any).newDelta}`);
 
             (position as any).TowId = productDetail ? productDetail.TowId : 0;
             (position as any).ItemName = productDetail ? productDetail.ItemName : 'Brak w PCMarket';
@@ -165,6 +191,8 @@ export class SheetService {
             (position as any).deltaValue = productDetail ? productDetail.RetailPrice * ((counted - exp)) : 0;
             (position as any).RetailPrice = productDetail ? productDetail.RetailPrice : 0;
         });
+
+        this.logger.log(`Returning processed sheet positions (${sheetPos.length}) for sheet ID: ${id}`);
 
         return sheetPos;
     }
@@ -177,6 +205,7 @@ export class SheetService {
 
 
         if (!sheet) {
+            this.logger.error(`Sheet not found: ${sheetId}`);
             throw new BadRequestException(['Nie znaleziono arkusza o podanym ID.']);
         }
 
@@ -192,7 +221,10 @@ export class SheetService {
         products.forEach(position => {
             const productDetail = productsDetails.find(p => p.TowId === position.productId);
             if (productDetail) {
+                this.logger.log(`Found product detail for position ${position.id}: ${JSON.stringify(productDetail)}`);
                 (position as any).productDetail = productDetail;
+            } else {
+                this.logger.warn(`No product detail found for position ${position.id} with productId ${position.productId}`);
             }
         });
 
@@ -203,8 +235,10 @@ export class SheetService {
             where: { import: { id: In(imports.map(i => i.id)) } },
             relations: ['import', 'sheetPosition']
         });
+        this.logger.log(`Found ${imports.length} imports and ${importPos.length} import positions for sheet ID: ${sheetId}`);
 
         imports.forEach(imp => {
+            this.logger.log(`Processing import: ${imp.id}`);
             (imp as any).positions = importPos.filter(pos => pos.import.id === imp.id)
                 .map(pos => {
                     const productDetail = productsDetails.find(p => p.TowId === pos.sheetPosition?.productId);
@@ -230,6 +264,8 @@ export class SheetService {
             (product as any).deltaValue = (product as any).productDetail.RetailPrice * (countedSum - expectedSum)
         });
 
+        this.logger.log(`Returning detailed sheet information for sheet ID: ${sheetId}`);
+
         
         return {
             basic: sheet,
@@ -241,7 +277,10 @@ export class SheetService {
     async createSheet(originId: number, piku: string, printerName: string) {   
         const originSheet = await this.sheetRepo.findOne({ where: { id: originId, temp: true, active: true } });
 
-        if (!originSheet) return new BadRequestException(['Nie znaleziono tymczasowego arkusza o podanym ID.']);
+        if (!originSheet) {
+            this.logger.error(`Temporary sheet not found: ${originId}`);
+            throw new BadRequestException(['Nie znaleziono tymczasowego arkusza o podanym ID.']);
+        }
 
         const productInSheetCount = await this.sheetPositionRepo.count({
             where: { sheet: { id: originId } }
@@ -256,6 +295,8 @@ export class SheetService {
             }
         });
 
+        this.logger.log(`Found ${sheetCount} sheets with name like ${piku}${yyyyMMdd}%`);
+
         const sheetName = `${piku}${yyyyMMdd}${(sheetCount + 1).toString().padStart(3, '0')}`;
         originSheet.temp = false;
         originSheet.dynamic = false;
@@ -266,19 +307,20 @@ export class SheetService {
 
         if (typeof filePath !== 'string' || !printerName) {
             return {
-            id: originSheet.id,
-            name: originSheet.name,
-            products: productInSheetCount,
-            basicPdf: {
-                success: true,
-                filePath
-            },
-            print: {
-                success: false,
-                printer: ''
-            }
-        };
+                id: originSheet.id,
+                name: originSheet.name,
+                products: productInSheetCount,
+                basicPdf: {
+                    success: true,
+                    filePath
+                },
+                print: {
+                    success: false,
+                    printer: ''
+                }
+            };
         }
+        
 
         const printResult = await this.raportsService.print(printerName, filePath);
         
@@ -296,7 +338,10 @@ export class SheetService {
 
     async createTempSheet(products: any[], countId: number, UsId: number) {
         const userExists = await this.authService.verifyUser(UsId);
-        if (!userExists) throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+        if (!userExists) {
+            this.logger.error(`User not found: ${UsId}`);
+            throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+        }
 
         const pass: Array<PC5MarketView> = []
         const notActive: Array<PC5MarketView> = []
@@ -327,23 +372,29 @@ export class SheetService {
             sheetPositionMap.set(sheet.productId, sheet);
         });
 
+        this.logger.log(`Found ${sheetPositions.length} active sheet positions for user ID: ${UsId}`);
+
         for (const product of products) {
             if (productIdsInDb.has(product)) {
                 const productInDb = productsInDb.find(p => p.TowId === product);
                 if (productInDb && productInDb.IsActive) {
                     const isInSheet = sheetPositionMap.get(product);
                     if (isInSheet) {
+                        this.logger.log(`Product ${product} is in sheet ${isInSheet.id}`);
                         used.push({
                             ...productInDb,
                             inSheet: isInSheet,
                         });
                     } else {
+                        this.logger.log(`Product ${product} passed and added to temp sheet`);
                         pass.push(productInDb);
                     }
                 } else {
+                    this.logger.log(`Product ${product} is not active`);
                     notActive.push(productInDb as PC5MarketView);
                 }
             } else {
+                this.logger.log(`Product ${product} not found in database`);
                 notFound.push(product);
             }
         }
@@ -422,7 +473,10 @@ export class SheetService {
 
     async createDynamicSheet(piku: string, UsId: number, count: number, printerName: string) {
         const userExists = await this.authService.verifyUser(UsId);
-        if (!userExists) throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+        if (!userExists) {
+            this.logger.error(`User not found: ${UsId}`);
+            throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+        }
 
         const today = new Date();
         const yyyyMMdd = today.toISOString().slice(2, 10).replace(/-/g, '');
@@ -434,6 +488,7 @@ export class SheetService {
         });
 
         const sheetName = `${yyyyMMdd}${(sheetCount + 1).toString().padStart(3, '0')}${piku}`;
+        this.logger.log(`Creating dynamic sheet: ${sheetName}`);
 
         const newSheet = await this.sheetRepo.save({
             temp: false,
@@ -462,6 +517,19 @@ export class SheetService {
         }
         const printer = printerName
         const printResult = await this.raportsService.print(printer, filePath);
+
+        if (!printResult || !printResult.success) {
+            this.logger.error(`Failed to print sheet ${newSheet.id} to printer ${printer}`);
+            return {
+                createdSheet: true,
+                sheet: newSheet,
+                filePath,
+                print: {
+                    status: false,
+                    filePath: ''
+                }
+            }
+        }
 
         return {
             createdSheet: true,

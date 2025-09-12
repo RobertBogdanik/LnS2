@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CountProductStatusView, Import, ImportPosition, PC5MarketView, Sheet, SheetPosition } from 'src/database/mssql.entity';
 import { Brackets, In, Repository } from 'typeorm';
 import { AuthService } from '../auth/auth.service';
+import { WinstonLogger } from 'src/config/winston.logger';
 
 @Injectable()
 export class ProductsService {
@@ -25,57 +26,63 @@ export class ProductsService {
         @InjectRepository(CountProductStatusView)
         private readonly countProductStatusViewRepository: Repository<CountProductStatusView>,
 
-        private readonly authService: AuthService
+        private readonly authService: AuthService,
+        private readonly logger: WinstonLogger
     ) {}
 
     sortHistory(history: any[]) {
+        this.logger.log(`Sorting history with ${history.length} entries`);
         return history.sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime());
     }
 
     async searchProducts(q: string, aso: string, status: string, UsId: number, count: number, padding: number = 0, limit: number = 50) {
         
         const userExists = await this.authService.verifyUser(UsId);
-        if (!userExists) throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+        if (!userExists) {
+            this.logger.warn(`User with ID ${UsId} not found during product search.`);
+            throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+        }
 
         // Pobierz wszystkie produkt
         const latestSheetSubQuery = this.sheetPositionRepository
-      .createQueryBuilder('sp')
-      .select('sp.product_id', 'product_id')
-      .addSelect('MAX(s.id)', 'latest_sheet_id')
-      .innerJoin('sp.sheet', 's')
-      .where('sp.is_disabled = :isDisabled', { isDisabled: 0 })
-      .andWhere('s.active = :active', { active: 1 })
-      .andWhere('s.count_id = :countId', { countId: count })
-      .groupBy('sp.product_id');
+            .createQueryBuilder('sp')
+            .select('sp.product_id', 'product_id')
+            .addSelect('MAX(s.id)', 'latest_sheet_id')
+            .innerJoin('sp.sheet', 's')
+            .where('sp.is_disabled = :isDisabled', { isDisabled: 0 })
+            .andWhere('s.active = :active', { active: 1 })
+            .andWhere('s.count_id = :countId', { countId: count })
+            .groupBy('sp.product_id');
 
-    const res =  await  this.pc5MarketViewRepository
-      .createQueryBuilder('pm')
-      .select([
-        'pm.TowId AS TowId',
-        'pm.AsoName AS AsoName',
-        'pm.ItemName AS ItemName',
-        'pm.MainCode AS MainCode',
-        'pm.ExtraCodes AS ExtraCodes',
-        'pm.IsActive AS ProductIsActive',
-        's.created_at AS SheetCreatedAt',
-        's.closed_at AS SheetClosedAt',
-        's.signing_at AS SheetSigningAt',
-        's.count_id AS SheetCountId',
-        's.id AS SheetId',
-        's.created_by AS SheetCreatedBy',
-        's.active AS SheetActive'
-      ])
-      .leftJoin(
-        `(${latestSheetSubQuery.getQuery()})`,
-        'ls',
-        'pm.TowId = ls.product_id'
-      )
-      .leftJoin(Sheet, 's', 'ls.latest_sheet_id = s.id')
-      .setParameters(latestSheetSubQuery.getParameters())
-      .orderBy('pm.ItemName', 'ASC')
-      .getRawMany();
+        const res =  await  this.pc5MarketViewRepository
+            .createQueryBuilder('pm')
+            .select([
+                'pm.TowId AS TowId',
+                'pm.AsoName AS AsoName',
+                'pm.ItemName AS ItemName',
+                'pm.MainCode AS MainCode',
+                'pm.ExtraCodes AS ExtraCodes',
+                'pm.IsActive AS ProductIsActive',
+                's.created_at AS SheetCreatedAt',
+                's.closed_at AS SheetClosedAt',
+                's.signing_at AS SheetSigningAt',
+                's.count_id AS SheetCountId',
+                's.id AS SheetId',
+                's.created_by AS SheetCreatedBy',
+                's.active AS SheetActive'
+            ])
+            .leftJoin(
+                `(${latestSheetSubQuery.getQuery()})`,
+                'ls',
+                'pm.TowId = ls.product_id'
+            )
+            .leftJoin(Sheet, 's', 'ls.latest_sheet_id = s.id')
+            .setParameters(latestSheetSubQuery.getParameters())
+            .orderBy('pm.ItemName', 'ASC')
+            .getRawMany();
 
-      console.log("\nInitial products fetched:", res.length, res[0]);
+        this.logger.log(`Fetched ${res.length} products from database for search.`);
+
         let filtered = res;
         
         // 1. Sortowanie po statusie
@@ -107,6 +114,7 @@ export class ProductsService {
             default:
                 break;
         }
+        this.logger.log(`Filtered products by status '${status}': ${filtered.length} remaining.`);
 
         // 2. Filtrowanie po nazwie lub kodzie
         if (q && q.trim()) {
@@ -126,17 +134,21 @@ export class ProductsService {
                 });
             }
         }
+        this.logger.log(`Filtered products by query '${q}': ${filtered.length} remaining.`);
 
 
         // 3. Filtrowanie po asortymencie
         if (aso) {
             filtered = filtered.filter(item => item.AsoName === aso);
         }
+        this.logger.log(`Filtered products by ASO '${aso}': ${filtered.length} remaining.`);
 
+        // Zapisz całkowitą liczbę wyników przed paddingiem i limitem
         const total = filtered.length;
 
         // 4. Sortowanie po nazwie
         filtered = filtered.sort((a, b) => (a.ItemName || '').localeCompare(b.ItemName || ''));
+        this.logger.log(`Sorted products by ItemName.`);
 
         // 5. Padding and limiting
         if (padding > 0) {
@@ -145,6 +157,10 @@ export class ProductsService {
         if (limit > 0) {
             filtered = filtered.slice(0, limit);
         }
+        this.logger.log(`Applied padding of ${padding} and limit of ${limit}: ${filtered.length} products to return.`);
+
+        // Zwróć przefiltrowane i posortowane produkty wraz z całkowitą liczbą wyników
+        this.logger.log(`Search completed. Returning ${filtered.length} products out of ${total} total matching products.`);
 
         return {
             data: filtered,
@@ -158,6 +174,9 @@ export class ProductsService {
             .where('pm.AsoName IS NOT NULL AND pm.AsoName != \'\'')
             .orderBy('pm.AsoName', 'ASC')
             .getRawMany();
+
+        this.logger.log(`Fetched ${asos.length} unique ASO names from database.`);
+
         return asos.map(a => a.AsoName);
     }
 
@@ -165,10 +184,15 @@ export class ProductsService {
         const history: any[] = []
 
         const product = await this.pc5MarketViewRepository.findOne({ where: { TowId: TowID } });
-        if (!product) return new BadRequestException(['Nie znaleziono produktu o podanym ID.']);
+        if (!product) {
+            this.logger.warn(`Product with TowId ${TowID} not found.`);
+            throw new BadRequestException(['Nie znaleziono produktu o podanym ID.']);
+        }
 
         const sheetPositions = await this.sheetPositionRepository.findOne({ where: { productId: TowID, sheet: { mainCount: true, active: true, count: { id: count } } }, relations: ['sheet', 'sheet.author'] });
         if (!sheetPositions) {
+            this.logger.log(`No active sheet position found for productId ${TowID} in count ${count}.`);
+
             return {
                 basic: product,
                 isInSheet: false,
@@ -201,9 +225,12 @@ export class ProductsService {
                 what: `Podpisano arkusz: ${sheetPositions.sheet.name}`
             });
         }
+        
 
         const importPositions = await this.importPositionRepository.find({ where: { sheetPosition: {id: sheetPositions.id} }, relations: ['import', 'import.author'] });
         if (!importPositions) {
+            this.logger.log(`No import positions found for sheetPositionId ${sheetPositions.id}.`);
+
             return {
                 basic: product,
                 isInSheet: true,
@@ -213,9 +240,13 @@ export class ProductsService {
             }
         }
 
+        this.logger.log(`Found ${importPositions.length} import positions for sheetPositionId ${sheetPositions.id}.`);
+
         var activeImportCounted = 0
         var activeImportExpected = 0
         importPositions.forEach(importPosition => {
+            this.logger.log(`Processing import position for sheetPositionId ${sheetPositions.id}: ${importPosition.id}`);
+            
             history.push({
                 when: importPosition.import.importedAt,
                 who: importPosition.import.author.username,
@@ -238,6 +269,8 @@ export class ProductsService {
             }
         });
 
+        this.logger.log(`Active import totals for productId ${TowID}: counted=${activeImportCounted}, expected=${activeImportExpected}`);
+
         return {
             basic: product,
             isInSheet: true,
@@ -254,25 +287,41 @@ export class ProductsService {
 
     async changeDelta(TowID: number, shelf: number, UsId: number, count: number) {
         const userExists = await this.authService.verifyUser(UsId);
-        if (!userExists) throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+        if (!userExists) {
+            this.logger.warn(`User with ID ${UsId} not found during delta change.`);
+            throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
+        }
 
         const product = await this.pc5MarketViewRepository.findOne({ where: { TowId: TowID } });
-        if (!product) return new BadRequestException(['Nie znaleziono produktu o podanym ID.']);
+        if (!product) {
+            this.logger.warn(`Product with TowId ${TowID} not found during delta change.`);
+            throw new BadRequestException(['Nie znaleziono produktu o podanym ID.']);
+        }
 
         const sheetPosition = await this.sheetPositionRepository.findOne({ where: { productId: TowID, sheet: { mainCount: true, active: true, count: { id: count } } }, relations: ['sheet'] });
-        if (!sheetPosition) return new BadRequestException(['Nie znaleziono pozycji arkusza dla podanego ID.']);
+        if (!sheetPosition) {
+            this.logger.warn(`No active sheet position found for productId ${TowID} in count ${count}.`);
+            return new BadRequestException(['Nie znaleziono pozycji arkusza dla podanego ID.']);
+        }
 
         const allCurrentImports = await this.importPositionRepository.find({ where: { sheetPosition: { id: sheetPosition.id } }, relations: ['import', 'import.author'] });
-        if (!allCurrentImports) return new BadRequestException(['Nie znaleziono importów dla podanego ID.']);
+        if (!allCurrentImports) {
+            this.logger.warn(`No import positions found for sheetPositionId ${sheetPosition.id}.`);
+            return new BadRequestException(['Nie znaleziono importów dla podanego ID.']);
+        }
 
         try {
             await this.importPositionRepository.manager.transaction(async transactionalEntityManager => {
                 // Disable all current imports
                 for (const importPosition of allCurrentImports) {
+                    if (importPosition.isDisabled) continue; 
+                    
                     importPosition.isDisabled = true;
                     importPosition.disabledAt = new Date();
                     importPosition.disabledBy = { id: UsId } as any;
                     importPosition.lastChange = new Date();
+
+                    this.logger.log(`Disabling import position ${importPosition.id} for sheetPositionId ${sheetPosition.id}.`);
                     await transactionalEntityManager.save(ImportPosition, importPosition);
                 }
 
@@ -285,6 +334,7 @@ export class ProductsService {
                     author: { id: UsId } as any,
                     isDisabled: false
                 });
+                this.logger.log(`Created new import ${newImport.id} for delta change on sheetPositionId ${sheetPosition.id}.`);
 
                 // Create new import position
                 const newImportPos = transactionalEntityManager.create(ImportPosition, {
@@ -295,13 +345,15 @@ export class ProductsService {
                     isDisabled: false,
                     lastChange: new Date()
                 });
+                this.logger.log(`Creating new import position for productId ${TowID} with quantity ${shelf} and expected quantity ${product.StockQty}.`);
 
                 await transactionalEntityManager.save(ImportPosition, newImportPos);
             });
 
+            this.logger.log(`Delta change transaction completed for productId ${TowID}.`);
             return await this.findOne(TowID, count);
         } catch (error) {
-            console.error('Error changing delta:', error);
+            this.logger.error(`Error during delta change for productId ${TowID}: ${error.message}`);
             return new BadGatewayException(['Wystąpił błąd podczas zmiany delty.']);
         }
     }
