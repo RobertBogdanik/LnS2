@@ -116,7 +116,7 @@ export class SheetPosition {
   @Column({ name: 'product_id' })
   productId: number;
 
-  @Column({ name: 'expected_quantity' })
+  @Column({ name: 'expected_quantity', type: 'float' })
   expectedQuantity: number;
 
   @Column({ type: 'bit', name: 'is_disabled' }) // Zmiana na 'bit' dla MSSQL
@@ -165,7 +165,7 @@ export class ImportPosition {
   @JoinColumn({ name: 'import_id' })
   import: Import;
 
-  @Column({ name: 'expected_quantity' })
+  @Column({ name: 'expected_quantity', type: 'float' })
   expectedQuantity: number;
 
   @ManyToOne(() => SheetPosition, (sheetPosition) => sheetPosition.id)
@@ -175,7 +175,7 @@ export class ImportPosition {
   @Column({ name: 'is_disabled', type: 'bit' }) // Zmiana na 'bit' dla MSSQL
   isDisabled: boolean;
 
-  @Column()
+  @Column({ type: 'float' })
   quantity: number;
 
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
