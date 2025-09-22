@@ -72,7 +72,7 @@ const SignSheet = () => {
                 onShelf: pos.onShelf
             }));
         try {
-            const res = await axiosInterface.put(`sheet/${sheetId}/sign`, { positions: changedRows });
+            await axiosInterface.put(`sheet/${sheetId}/sign`, { positions: changedRows });
             toast.success("Arkusz podpisany pomyślnie.");
             closeSignSheetStoreModal();
             setSheetData(null);
@@ -86,7 +86,7 @@ const SignSheet = () => {
             return;
         }
 
-    }, [sheetId, sheetData]);
+    }, [sheetId, sheetData, closeSignSheetStoreModal]);
 
     if (!sheetId) return null;
 
