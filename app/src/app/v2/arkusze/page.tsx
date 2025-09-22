@@ -37,7 +37,7 @@ const ArkuszPage = () => {
     }
     const [listParam, setListParam] = useState<ListParam>({
         total: 0,
-        perPage: 5,
+        perPage: 25,
         currentPage: 1,
     })
 
