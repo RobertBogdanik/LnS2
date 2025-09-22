@@ -16,6 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { IoMdDownload } from "react-icons/io";
 import axiosInterface from "@/config/axios";
+import { useSheetCardStore } from "@/context/sheetCard";
 
 
 type SheetProduct = {
@@ -49,8 +50,7 @@ const CreateSheet = ({
 }) => {
     const [step, setStep] = React.useState(0);
     const [data, setData] = React.useState<TempSheetData>({ passed: [], notActive: [], used: [], notFound: [] });
-
-
+    const { openModal } = useSheetCardStore();
     const createSheet = useCallback(async (sheetId: number) => {
         setStep(2);
 
@@ -90,6 +90,12 @@ const CreateSheet = ({
         }
     }, [isOpen, createTempSheet]);
 
+    const openCreatedSheet = () => {
+        if (data?.sheet?.id) {
+            openModal(data.sheet.id);
+            onClose();
+        }
+    }
 
     return (
         <AlertDialog open={isOpen} onOpenChange={onClose}>
@@ -214,11 +220,7 @@ const CreateSheet = ({
 
                         <Button
                             type="button"
-                            onClick={() => {
-                                if (data?.id) {
-                                    window.location.href = `/v2/sheet/${data.id}`;
-                                }
-                            }}
+                            onClick={openCreatedSheet}
                             variant={'outline'}
                             className="mb-1 mt-3"
                         >
