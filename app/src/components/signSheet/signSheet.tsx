@@ -73,8 +73,9 @@ const SignSheet = () => {
             }));
         try {
             const res = await axiosInterface.put(`sheet/${sheetId}/sign`, { positions: changedRows });
-            console.log(res.data);
-
+            toast.success("Arkusz podpisany pomyślnie.");
+            closeSignSheetStoreModal();
+            setSheetData(null);
         } catch (error) {
             if(axios.isAxiosError(error) && error.response?.status === 400) {
                 toast.error("Nie można podpisać arkusza.", {
