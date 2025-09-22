@@ -91,8 +91,8 @@ const CreateSheet = ({
     }, [isOpen, createTempSheet]);
 
     const openCreatedSheet = () => {
-        if (data?.sheet?.id) {
-            openModal(data.sheet.id);
+        if (data?.id) {
+            openModal(data.id);
             onClose();
         }
     }
