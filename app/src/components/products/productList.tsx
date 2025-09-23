@@ -504,14 +504,14 @@ export function ProductListDialog({ onClose }: { onClose: (el: Product[]) => voi
                   <TableHeader className="sticky top-0 z-20 bg-white">
                     <TableRow className="border-b bg-gray-50">
                       <TableHead>
-                        <Checkbox
+                        {/* <Checkbox
                           aria-label="Zaznacz wszystkie"
-                        // checked={
-                        //   filteredProducts.length > 0 &&
-                        //   filteredProducts.every((p) => selectedProducts.has(p.TowId))
-                        // }
-                        // onCheckedChange={handleSelectAll}
-                        />
+                        checked={
+                          filteredProducts.length > 0 &&
+                          filteredProducts.every((p) => selectedProducts.has(p.TowId))
+                        }
+                        onCheckedChange={handleSelectAll}
+                        /> */}
                       </TableHead>
                       <TableHead>Nazwa</TableHead>
                       <TableHead>Ilość</TableHead>

@@ -247,7 +247,7 @@ export default function ProductTable() {
                   </span>
                 </>}
                 {dynamicCount.page === 3 && <>
-                  Dynamiczne liczenie <strong>{dynamicCount.created?.sheet.name}</strong> zostalo utworzone pomyslnie.  
+                  Dynamiczne liczenie <strong>{dynamicCount.created?.sheet.name}</strong> zostalo utworzone pomyslnie.
                   {dynamicCount.created?.print.status && <span> Zlecony został wydruk na drukarce <strong>{dynamicCount.created?.print.printer}</strong>.</span>}
                   {!dynamicCount.created?.print.status && <Alert variant="destructive">
                     <AlertCircleIcon />

@@ -10,12 +10,15 @@ import SheetCard from "@/components/sheet/sheetCard"
 import ProductCard from "@/components/product/productCard"
 import { PiStampThin } from "react-icons/pi";
 import { usePathname } from "next/navigation";
+import SearchModal from "@/components/search/searchModal";
+import { useSearchModalStore } from "@/context/search";
 
 export default function DashboardLayout({
     children,
 }: Readonly<{
     children: React.ReactNode
 }>) {
+    const {openSearchModal} = useSearchModalStore();
     const logout = () => {
         sessionStorage.clear();
         window.location.href = '/';
@@ -35,6 +38,7 @@ export default function DashboardLayout({
     return (
         <div className="flex flex-col min-h-screen">
             <ProductCard />
+            <SearchModal />
             <div className="relative h-1 w-full rounded overflow-hidden">
                 <div className="absolute inset-0 flex w-full h-full">
                     <div className="w-[30%] bg-red-400" />
@@ -64,7 +68,16 @@ export default function DashboardLayout({
 
                 <div className="flex items-center gap-4">
                     <div className="relative">
-                        <Input placeholder="Szukaj..." className="w-48 pr-10" />
+                        <Input
+                            placeholder="Szukaj..."
+                            className="w-48 pr-10"
+                            id="product-search-input"
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => {
+                                openSearchModal((e.target as HTMLInputElement).value);
+                                (e.target as HTMLInputElement).value = '';
+                            }}
+                        />
                     </div>
                     <Button onClick={logout} variant="outline" className="relative p-2 rounded-md hover:bg-accent focus:outline-none">
                         Wyloguj
