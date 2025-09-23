@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchModalStore } from "@/context/search";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { useEffect, useState } from "react";
 import axiosInterface from "@/config/axios";
 import { Button } from "../ui/button";
@@ -25,10 +25,15 @@ const useDebounce = <T,>(value: T, delay: number): T => {
 };
 
 const SearchModal = () => {
+    interface Product {
+        TowId: number;
+        ItemName: string;
+        MainCode: string;
+    }
     const { isSearchOpen, searchQuery, setSearchQuery, closeSearchModal } = useSearchModalStore();
     const { openProductCard } = useProductCardStore();
     const [isLoading, setIsLoading] = useState(false);
-    const [results, setResults] = useState<any[]>([]);
+    const [results, setResults] = useState<Product[]>([]);
 
     // Use debounce hook to get the debounced value for searchQuery
     const debouncedSearchQuery = useDebounce(searchQuery, 500); // debounce with 500ms delay
@@ -66,7 +71,7 @@ const SearchModal = () => {
         if (debouncedSearchQuery) {
             handleSearch(debouncedSearchQuery);
         }
-    }, [debouncedSearchQuery]); // Trigger search when debounced value changes
+    }, [debouncedSearchQuery, handleSearch]); // Trigger search when debounced value changes
 
     return (
         <Dialog open={isSearchOpen} onOpenChange={closeSearchModal}>
