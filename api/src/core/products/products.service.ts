@@ -63,6 +63,7 @@ export class ProductsService {
                 'pm.MainCode AS MainCode',
                 'pm.ExtraCodes AS ExtraCodes',
                 'pm.IsActive AS ProductIsActive',
+                'pm.StockQty AS StockQty',
                 's.created_at AS SheetCreatedAt',
                 's.closed_at AS SheetClosedAt',
                 's.signing_at AS SheetSigningAt',

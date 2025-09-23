@@ -539,7 +539,7 @@ export function ProductListDialog({ onClose }: { onClose: (el: Product[]) => voi
                             />
                           </TableCell>
                           <TableCell>{item.ItemName}</TableCell>
-                          <TableCell>{item.AsoName}</TableCell>
+                          <TableCell>{item.StockQty}</TableCell>
                           <TableCell>{item.AsoName}</TableCell>
                         </TableRow>
                       )
