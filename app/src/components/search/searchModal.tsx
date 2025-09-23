@@ -7,7 +7,6 @@ import axiosInterface from "@/config/axios";
 import { Button } from "../ui/button";
 import { useProductCardStore } from "@/context/productCard";
 
-// Use the provided `useDebounce` hook
 const useDebounce = <T,>(value: T, delay: number): T => {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
@@ -35,8 +34,7 @@ const SearchModal = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [results, setResults] = useState<Product[]>([]);
 
-    // Use debounce hook to get the debounced value for searchQuery
-    const debouncedSearchQuery = useDebounce(searchQuery, 500); // debounce with 500ms delay
+    const debouncedSearchQuery = useDebounce(searchQuery, 400); 
 
     const handleSearch = useCallback(async (query: string) => {
         if (!query.trim()) {

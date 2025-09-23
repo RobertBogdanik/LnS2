@@ -94,7 +94,7 @@ const SignSheet = () => {
         <Dialog open={isSignSheetStoreOpen} onOpenChange={closeSignSheetStoreModal}>
 
             {/* <DialogContent className="min-w-7xl h-[90vh] flex flex-col gap-0 p-0" showCloseButton={false}> */}
-            <DialogContent className="sm:max-w-[1400px] max-h-[700px] flex flex-col">
+            <DialogContent className="sm:max-w-[1400px]  max-h-[700px] flex flex-col">
                 <DialogHeader className="gap-0 p-2">
                     <DialogTitle className="text-2xl font-bold mb-2">Podpisz arkusz {sheetId}</DialogTitle>
                 </DialogHeader>
@@ -124,7 +124,9 @@ const SignSheet = () => {
                         <TableBody>
                             {sheetData?.map((position) => (
                                 <TableRow key={position.id} className="hover:bg-gray-200">
-                                    <TableCell>{position.ItemName}</TableCell>
+                                    <TableCell style={{ whiteSpace: "pre-line", wordBreak: "break-word", maxWidth: 220 }}>
+                                        {position.ItemName}
+                                    </TableCell>
                                     <TableCell>
                                         <strong>{position.MainCode.replaceAll('?', '')}</strong>
                                         {position.ExtraCodes
@@ -176,6 +178,9 @@ const SignSheet = () => {
                                                         : value.slice(0, dotIndex + 1) + value.slice(dotIndex + 1).replaceAll(".", "");
 
                                                 const num = Number(sanitizedValue);
+                                                if (isNaN(num) || num < 0) {
+                                                    return;
+                                                }
 
                                                 setSheetData((prev) =>
                                                     prev?.map((p) =>
@@ -214,8 +219,8 @@ const SignSheet = () => {
                                     >
                                         <Input
                                             type="text"
-                                            className="w-30"
-                                            value={position.newDelta}
+                                            className={`w-30 ${isNaN(Number(position.newDelta)) ? "border-red-600 bg-red-100" : ""}`}
+                                            defaultValue={position.newDelta || 0}
                                             onFocus={e => {
                                                 e.target.select();
                                             }}
@@ -308,7 +313,7 @@ const SignSheet = () => {
                                 <TableCell colSpan={10} className="text-left text-muted-foreground">
                                     <Button
                                         className="w-full p-5 mt-5 mb-3"
-                                        disabled={sheetData?.some((pos) => isNaN(Number(pos.onShelf)) || isNaN(Number(pos.newDelta)) || pos.onShelf < 0)}
+                                        disabled={sheetData?.some((pos) => isNaN(Number(pos.onShelf)) || isNaN(Number(pos.newDelta)) || pos.onShelf < 0) || sheetData?.some((pos) => isNaN(Number(pos.newDelta)))}
                                         onClick={signSheet}>
                                         Podpisz arkusz
                                     </Button>
