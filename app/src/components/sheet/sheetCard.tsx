@@ -127,6 +127,22 @@ const SheetCard = () => {
         download();
     }, [sheetData, sheetId]);
 
+    const handleDownloadDynamic = useCallback(() => {
+        if (!sheetId) return;
+        const download = async () => {
+        if (!sheetId) return;
+        const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=sheets/dynamic/${sheetData?.basic?.name}_dynamic.pdf`;
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = `${sheetData?.basic?.name}_dynamic.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        }
+
+        download();
+    }, [sheetData, sheetId]);
+
     const finalizeSheet = useCallback(async () => {
         setIsLoading(true);
         const res = await axiosInterface.post(`sheet`, {
@@ -492,20 +508,29 @@ const SheetCard = () => {
                         </TabsContent>
                         <TabsContent value="downloads">
                             {!sheetData?.basic?.temp &&<div className="flex flex-col gap-4 mt-4">
-                                <Button
+                                {!sheetData?.basic?.dynamic && <>
+                                    <Button
+                                        className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition shadow"
+                                        onClick={handleDownloadPDF}
+                                    >
+                                        <IoMdDownload className="w-5 h-5" />
+                                        Pobierz PDF
+                                    </Button>
+                                    <Button
+                                        className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition shadow"
+                                        onClick={handleDownloadKreski}
+                                    >
+                                        <IoMdDownload className="w-5 h-5" />
+                                        Pobierz kreski
+                                    </Button>
+                                </>}
+                                {sheetData?.basic?.dynamic && <Button
                                     className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition shadow"
-                                    onClick={handleDownloadPDF}
+                                    onClick={handleDownloadDynamic}
                                 >
                                     <IoMdDownload className="w-5 h-5" />
-                                    Pobierz PDF
-                                </Button>
-                                <Button
-                                    className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition shadow"
-                                    onClick={handleDownloadKreski}
-                                >
-                                    <IoMdDownload className="w-5 h-5" />
-                                    Pobierz kreski
-                                </Button>
+                                    Pobierz potwierdzenie dynamicznego
+                                </Button>}
                             </div>}
                         </TabsContent>
                         <TabsContent value="service">

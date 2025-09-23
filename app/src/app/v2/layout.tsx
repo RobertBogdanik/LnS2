@@ -9,6 +9,7 @@ import { CiImport, CiExport, CiSettings } from "react-icons/ci";
 import SheetCard from "@/components/sheet/sheetCard"
 import ProductCard from "@/components/product/productCard"
 import { PiStampThin } from "react-icons/pi";
+import { usePathname } from "next/navigation";
 
 export default function DashboardLayout({
     children,
@@ -19,6 +20,17 @@ export default function DashboardLayout({
         sessionStorage.clear();
         window.location.href = '/';
     }
+
+    const pathname = usePathname();
+
+    const navLinks = [
+        { href: "/v2/", label: "Tworzenie", icon: <MdOutlineAdd /> },
+        { href: "/v2/arkusze", label: "Arkusze", icon: <LuFileSpreadsheet /> },
+        { href: "/v2/import", label: "Import", icon: <CiImport /> },
+        { href: "/v2/eksport", label: "Eksport", icon: <CiExport /> },
+        { href: "/v2/arkusze/podpisz", label: "Podpisywanie", icon: <PiStampThin /> },
+        { href: "/v2/ustawienia", label: "Ustawienia", icon: <CiSettings /> },
+    ];
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -34,24 +46,17 @@ export default function DashboardLayout({
                 {/* Left side – links */}
                 <div className="flex items-center gap-4">
 
-                    <Link href="/v2/">
-                        <Button variant="link" className="active underline"><MdOutlineAdd />Tworzenie</Button>
-                    </Link>
-                    <Link href="/v2/arkusze">
-                        <Button variant="link"><LuFileSpreadsheet />Arkusze</Button>
-                    </Link>
-                    <Link href="/v2/import">
-                        <Button variant="link"><CiImport />Import</Button>
-                    </Link>
-                    <Link href="/v2/eksport">
-                        <Button variant="link"><CiExport />Eksport</Button>
-                    </Link>
-                    <Link href="/v2/arkusze/podpisz">
-                        <Button variant="link"><PiStampThin />Podpisywanie</Button>
-                    </Link>
-                    <Link href="/v2/ustawienia">
-                        <Button variant="link"><CiSettings />Ustawienia</Button>
-                    </Link>
+
+                    {navLinks.map(({ href, label, icon }) => (
+                        <Link key={href} href={href}>
+                            <Button
+                                variant="link"
+                                className={pathname === href ? "active underline" : ""}
+                            >
+                                {icon}{label}
+                            </Button>
+                        </Link>
+                    ))}
                     {/* <Link href="/v2/raporty">
                         <Button variant="link"><IoDocumentTextOutline />Raporty</Button>
                     </Link> */}
