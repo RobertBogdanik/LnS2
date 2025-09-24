@@ -12,9 +12,11 @@ export class SheetController {
     @Query('padding') padding: number,
     @Query('limit') limit: number,
     @Query('q') q: string,
-    @Query('statuses') statuses: string
+    @Query('statuses') statuses: string,
+    @UserHeaders() headers: UserHeadersType
   ) {
-    return this.sheetService.findSheets(padding, limit, q, statuses.split(','));
+    if (!headers.count) throw new UnauthorizedException('Brak liczeania');
+    return this.sheetService.findSheets(padding, limit, q, statuses.split(','), headers.count);
   }
 
   @Get('dynamicPiku')

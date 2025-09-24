@@ -33,11 +33,14 @@ export class SheetService {
         private readonly logger: WinstonLogger
     ) {}
 
-    async findSheets(padding: number, limit: number, q: string, statuses: string[]) {
+    async findSheets(padding: number, limit: number, q: string, statuses: string[], count: number) {
         const allSheets = await this.sheetRepo.find({
             order: {
                 created_at: 'DESC'
             },
+            where: {
+                count: { id: count },
+            }
         });
 
         let filteredSheets = allSheets;
