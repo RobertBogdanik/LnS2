@@ -18,119 +18,58 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 
 import { useUserStore } from "@/context/user";
 import jwt from 'jsonwebtoken';
 import { useCountStore } from "@/context/count";
 import axios from "axios";
 
+interface Count {
+  id: number;
+  is_active: boolean;
+  closed_at: string | null;
+  name: string;
+  open_at: string;
+}
+
 export default function LoginForm() {
-
-
-  const {
-    setUser
-  } = useUserStore();
-
-  const {
-    setCount
-  } = useCountStore();
+  const { setUser } = useUserStore();
+  const { setCount } = useCountStore();
 
   const router = useRouter();
   const [otp, setOtp] = useState("");
   const [loginProgress, setLoginProgress] = useState({
-    step: 0, val: {
+    step: 0,
+    val: {
       username: "",
       count: "",
     }
   });
 
-  // type StoreDefinition = {
-  //   storeName: string;
-  //   keyPath: string;
-  //   data: any[];
-  // };
-
-  // const updateToIndexedDB = async (dbName: string, version: number, storeDefs: StoreDefinition[], count: number) => {
-  //   const db = await openDB(dbName, version, {
-  //     upgrade(db) {
-  //       for (const { storeName, keyPath } of storeDefs) {
-  //         if (!db.objectStoreNames.contains(storeName)) {
-  //           db.createObjectStore(storeName, {
-  //             keyPath,
-  //             autoIncrement: false,
-  //           });
-  //         }
-  //       }
-  //     },
-  //   });
-
-  //   for (const { storeName, data } of storeDefs) {
-  //     const tx = db.transaction(storeName, 'readwrite');
-  //     const store = tx.objectStore(storeName);
-
-  //     for (const item of data) {
-  //       const existingItem = await store.get(item.TowId);
-  //       if (existingItem) {
-  //         console.log("Istnieje:", existingItem);
-  //         console.log("Aktualizuję:", item);
-  //         await store.put({
-  //           ...existingItem, counts: {
-  //             ...existingItem.counts,
-  //             [count]: {
-  //               ...item,
-  //             },
-  //           }
-  //         });
-  //       } else {
-  //         toast.error(`Brak TowId: ${item.TowId} w bazie danych.`);
-  //       }
-  //     }
-
-  //     await tx.done;
-  //   }
-
-  //   db.close();
-  // };
-
-  // const saveToIndexedDB = async (dbName: string, version: number, storeDefs: StoreDefinition[]) => {
-  //   const db = await openDB(dbName, version, {
-  //     upgrade(db) {
-  //       for (const { storeName, keyPath } of storeDefs) {
-  //         if (!db.objectStoreNames.contains(storeName)) {
-  //           db.createObjectStore(storeName, {
-  //             keyPath,
-  //             autoIncrement: false,
-  //           });
-  //         }
-  //       }
-  //     },
-  //   });
-
-  //   for (const { storeName, data } of storeDefs) {
-  //     const tx = db.transaction(storeName, 'readwrite');
-  //     const store = tx.objectStore(storeName);
-
-  //     for (const item of data) {
-  //       await store.put(item);
-  //     }
-
-  //     await tx.done;
-  //   }
-
-  //   db.close();
-  // };
+  // Nowe stany do zarządzania wyborem liczenia
+  const [availableCounts, setAvailableCounts] = useState<Count[]>([]);
+  const [selectedCountId, setSelectedCountId] = useState<number | null>(null);
+  const [showCountSelection, setShowCountSelection] = useState(false);
 
   const login = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoginProgress({
-      step: 1, val: {
+      step: 1,
+      val: {
         username: "",
         count: "",
       }
     });
 
     const workstation = localStorage.getItem("workstation") || "";
-
     const lastSyncDate = localStorage.getItem("lastSyncs")
       ? new Date(localStorage.getItem("lastSyncs") as string)
       : new Date(1971, 0, 1);
@@ -144,7 +83,8 @@ export default function LoginForm() {
       });
     } catch (err: unknown) {
       setLoginProgress({
-        step: 0, val: {
+        step: 0,
+        val: {
           username: "",
           count: "",
         }
@@ -166,16 +106,12 @@ export default function LoginForm() {
     const { token, user, counts }: {
       token: string;
       user: string;
-      counts: Array<{
-        id: number;
-        is_active: boolean;
-        closed_at: string | null;
-        name: string;
-        open_at: string;
-      }>;
+      counts: Count[];
     } = loginResponse.data;
+
     setLoginProgress({
-      step: 2, val: {
+      step: 2,
+      val: {
         username: user,
         count: "",
       }
@@ -183,7 +119,8 @@ export default function LoginForm() {
 
     if (!counts || counts.length === 0) {
       setLoginProgress({
-        step: 0, val: {
+        step: 0,
+        val: {
           username: "",
           count: "",
         }
@@ -192,22 +129,40 @@ export default function LoginForm() {
       return;
     }
 
-    interface Count {
-      id: number;
-      is_active: boolean;
-      closed_at: string | null;
-      name: string;
-      open_at: string;
-    }
+    // Filtruj aktywne liczenia
+    const activeCounts = counts.filter((c) => c.is_active && (!c.closed_at || new Date(c.closed_at) > new Date()));
 
-    const activeCount = (counts as Count[]).find((c) => c.is_active && !c.closed_at);
-    const selectedCount = activeCount
-      ? activeCount
-      : counts.reduce((latest: Count, curr: Count) =>
+    // Jeśli jest tylko jedno aktywne liczenie, wybierz je automatycznie
+    if (activeCounts.length === 1) {
+      const selectedCount = activeCounts[0];
+      completeLogin(token, user, selectedCount);
+    }
+    // Jeśli jest więcej niż jedno aktywne liczenie, pokaż dialog wyboru
+    else if (activeCounts.length > 1) {
+      sessionStorage.setItem("jwt", token); // Tymczasowo zapisz token
+      setAvailableCounts(activeCounts);
+      setSelectedCountId(activeCounts[0].id); // Ustaw pierwsze jako domyślne
+      setShowCountSelection(true);
+      setLoginProgress({
+        step: 3,
+        val: {
+          username: user,
+          count: "",
+        }
+      });
+    }
+    // Jeśli nie ma aktywnych liczeń, wybierz najnowsze zamknięte
+    else {
+      const selectedCount = counts.reduce((latest: Count, curr: Count) =>
         new Date(curr.closed_at ?? "") > new Date(latest.closed_at ?? "") ? curr : latest,
         counts[0]
       );
+      completeLogin(token, user, selectedCount);
+    }
+  };
 
+  // Funkcja do dokończenia procesu logowania po wyborze liczenia
+  const completeLogin = (token: string, user: string, selectedCount: Count) => {
     sessionStorage.setItem("selectedCount", selectedCount.id.toString());
     setCount(
       selectedCount.closed_at,
@@ -223,104 +178,13 @@ export default function LoginForm() {
 
     sessionStorage.setItem("jwt", token);
 
-    // // let syncResponse;
-    // // console.log("Last sync date:", lastSyncDate);
-    // // try {
-    // //   syncResponse = await axiosInterface.get('/sync/by-timestamp', {
-    // //     params: {
-    // //       lastSyncs: lastSyncDate,
-    // //     },
-    // //   });
-    // // } catch (err: any) {
-    // //   setLoginProgress({
-    // //     step: 0, val: {
-    // //       username: "",
-    // //       count: "",
-    // //     }
-    // //   });
-    // //   toast.error("Wystąpił błąd podczas synchronizacji danych.", {
-    // //     description: (
-    // //       <ul className="list-disc list-inside">
-    // //         {(err.response?.data?.message || []).map((msg: string, idx: number) => (
-    // //           <li key={idx}>{msg}</li>
-    // //         ))}
-    // //       </ul>
-    // //     ),
-    // //   });
-    // //   return;
-    // // }
-
-    // // const { lastZmiana, pc5MarketViews } = syncResponse.data;
-    // // setLoginProgress(prev => ({ ...prev, step: 3 }));
-    // // console.log("Last zmiana date:", lastZmiana);
-    // // console.log("PC5MarketViews:", pc5MarketViews.length);
-
-    // // await saveToIndexedDB('LnS', 1, [
-    // //   {
-    // //     storeName: 'pc5MarketInwentaryzator',
-    // //     keyPath: 'TowId',
-    // //     data: pc5MarketViews,
-    // //   },
-    // // ]);
-
-    // if (pc5MarketViews.length !== 0) localStorage.setItem("lastSyncs", new Date(lastZmiana).toISOString());
-
-    // toast.success("Dane zostały zsynchronizowane!", {
-    //   description: `Zsynchronizowano ${pc5MarketViews.length} pozycji.`,
-    // });
-
-    setLoginProgress(prev => ({
-      step: 4, val: {
-        ...prev.val,
+    setLoginProgress({
+      step: 4,
+      val: {
+        username: user,
         count: selectedCount.name,
       }
-    }));
-
-    // const lastCountSync = localStorage.getItem(`last-${selectedCount.id}-sync`)
-    //   ? new Date(localStorage.getItem(`last-${selectedCount.id}-sync`) as string)
-    //   : new Date(1971, 0, 1);
-
-    // try {
-    //   const countSyncResponse = await axiosInterface.get('/sync/count/by-timestamp', {
-    //     params: {
-    //       lastSyncs: lastCountSync,
-    //       countId: selectedCount.id,
-    //     },
-    //   });
-    //   console.log("Count sync response:", countSyncResponse.data);
-
-    //   const { lastSyncs: countLastSync, updates: countUpdatesViews } = countSyncResponse.data;
-    //   updateToIndexedDB('LnS', 1, [{
-    //     storeName: 'pc5MarketInwentaryzator',
-    //     keyPath: 'TowId',
-    //     data: countUpdatesViews,
-    //   }], selectedCount.id);
-
-    //   if (countUpdatesViews.length !== 0) {
-    //     localStorage.setItem(`last-${selectedCount.id}-sync`, new Date(countLastSync).toISOString());
-    //   }
-
-    //   toast.success("Dane liczenia zostały zsynchronizowane!", {
-    //     description: `Zsynchronizowano ${countUpdatesViews.length} pozycji liczenia.`,
-    //   });
-    // } catch (err: any) {
-    //   setLoginProgress({
-    //     step: 0, val: {
-    //       username: "",
-    //       count: "",
-    //     }
-    //   });
-    //   toast.error("Wystąpił błąd podczas synchronizacji danych liczenia.", {
-    //     description: (
-    //       <ul className="list-disc list-inside">
-    //         {(err.response?.data?.message || []).map((msg: string, idx: number) => (
-    //           <li key={idx}>{msg}</li>
-    //         ))}
-    //       </ul>
-    //     ),
-    //   });
-    //   return;
-    // }
+    });
 
     interface JwtData {
       userName: string;
@@ -336,7 +200,22 @@ export default function LoginForm() {
     } else {
       toast.error("Nie można odczytać danych użytkownika z tokenu.");
     }
+  };
 
+  // Funkcja do obsługi wyboru liczenia przez użytkownika
+  const handleCountSelection = () => {
+    if (!selectedCountId) {
+      toast.error("Proszę wybrać liczenie");
+      return;
+    }
+
+    const selectedCount = availableCounts.find(c => c.id === selectedCountId);
+    if (selectedCount) {
+      setShowCountSelection(false);
+      const token = sessionStorage.getItem("jwt") || "";
+      const username = loginProgress.val.username;
+      completeLogin(token, username, selectedCount);
+    }
   };
 
   useEffect(() => {
@@ -345,10 +224,9 @@ export default function LoginForm() {
     }
   }, []);
 
-
   return (
     <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
-      <AlertDialog open={loginProgress.step > 0}>
+      <AlertDialog open={loginProgress.step > 0 && !showCountSelection}>
         --{process.env.NEXT_PUBLIC_SERVER_HOST}--
         <AlertDialogContent className="text-center">
           <div className="flex justify-center mt-3 h-5 space-x-2">
@@ -375,6 +253,46 @@ export default function LoginForm() {
           </AlertDialogHeader>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={showCountSelection} onOpenChange={setShowCountSelection}>
+        <DialogContent className="sm:max-w-5xl">
+          <DialogHeader>
+            <DialogTitle>Wybierz liczenie</DialogTitle>
+            <DialogDescription>
+              Znaleziono kilka aktywnych liczeń. Wybierz które chcesz użyć.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+
+            <Label htmlFor="count-select" className="mb-2 block font-medium">
+              Wybierz liczenie:
+            </Label>
+            <select
+              id="count-select"
+              className="w-full border rounded px-3 py-2"
+              value={selectedCountId ?? ""}
+              onChange={(e) => setSelectedCountId(Number(e.target.value))}
+            >
+              {availableCounts.map((count: Count) => (
+                <option key={count.id} value={count.id}>
+                  {count.name} (Otwarte: {new Date(count.open_at).toLocaleString()}
+                  {count.closed_at ? ` | Zamknięte: ${new Date(count.closed_at).toLocaleString()}` : ""})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setShowCountSelection(false)}>
+              Anuluj
+            </Button>
+            <Button onClick={handleCountSelection}>
+              Wybierz
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="w-full max-w-sm md:max-w-3xl">
         <div className="flex flex-col gap-6">
