@@ -25,6 +25,7 @@ import { IoMdDownload } from "react-icons/io";
 import { useProductCardStore } from "@/context/productCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { toast } from "sonner";
+import axios from "axios";
 
 const SheetCard = () => {
     const { isOpen, sheetId, closeModal, setLastChange } = useSheetCardStore();
@@ -100,28 +101,76 @@ const SheetCard = () => {
 
     const handleDownloadPDF = useCallback(() => {
         if (!sheetId) return;
-        const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=sheets/basic/${sheetData?.basic?.name}.pdf`;
-        const link = document.createElement('a');
-        link.href = fileUrl;
-        link.download = `${sheetData?.basic?.name}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        try {
+            const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=sheets/basic/${sheetData?.basic?.name}.pdf`;
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.download = `${sheetData?.basic?.name}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+                if (axios.isAxiosError(error) && error.response?.status === 400) {
+                    toast.error("Nie można pobrać podsumowania.", {
+                        description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
+                    });
+                    return;
+                }
+                return;
+            }
     }, [sheetData, sheetId]);
 
     const handleDownloadKreski = useCallback(() => {
         if (!sheetId) return;
 
         const download = async () => {
-            const path = await axiosInterface.get(`pdf/sheet/${sheetData?.basic?.id}/kreski`).then(res => res.data)
+            try {
+                const path = await axiosInterface.get(`pdf/sheet/${sheetData?.basic?.id}/kreski`).then(res => res.data)
 
-            const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=${path}`;
-            const link = document.createElement('a');
-            link.href = fileUrl;
-            link.download = `${sheetData?.basic?.name}_kreski.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+                const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=${path}`;
+                const link = document.createElement('a');
+                link.href = fileUrl;
+                link.download = `${sheetData?.basic?.name}_kreski.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                if (axios.isAxiosError(error) && error.response?.status === 400) {
+                    toast.error("Nie można pobrać podsumowania.", {
+                        description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
+                    });
+                    return;
+                }
+                return;
+            }
+        }
+
+        download();
+    }, [sheetData, sheetId]);
+
+    const handleDownloadDynSumUp= useCallback(() => {
+        if (!sheetId) return;
+
+        const download = async () => {
+            try {
+                const path = await axiosInterface.get(`pdf/sheet/${sheetData?.basic?.id}/dynsumup`).then(res => res.data)
+
+                const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=${path}`;
+                const link = document.createElement('a');
+                link.href = fileUrl;
+                link.download = `${sheetData?.basic?.name}_dynsumup.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                if (axios.isAxiosError(error) && error.response?.status === 400) {
+                    toast.error("Nie można pobrać podsumowania.", {
+                        description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
+                    });
+                    return;
+                }
+                return;
+            }
         }
 
         download();
@@ -129,15 +178,52 @@ const SheetCard = () => {
 
     const handleDownloadDynamic = useCallback(() => {
         if (!sheetId) return;
-        const download = async () => {
+            const download = async () => {
+            if (!sheetId) return;
+            try{
+                const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=sheets/dynamic/${sheetData?.basic?.name}_dynamic.pdf`;
+                const link = document.createElement('a');
+                link.href = fileUrl;
+                link.download = `${sheetData?.basic?.name}_dynamic.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                if (axios.isAxiosError(error) && error.response?.status === 400) {
+                    toast.error("Nie można pobrać podsumowania.", {
+                        description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
+                    });
+                    return;
+                }
+                return;
+            }
+        }
+
+        download();
+    }, [sheetData, sheetId]);
+
+    const handleDownloadPodladka = useCallback(() => {
         if (!sheetId) return;
-        const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=sheets/dynamic/${sheetData?.basic?.name}_dynamic.pdf`;
-        const link = document.createElement('a');
-        link.href = fileUrl;
-        link.download = `${sheetData?.basic?.name}_dynamic.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+
+        const download = async () => {
+            try {
+                const path = await axiosInterface.get(`pdf/sheet/${sheetData?.basic?.id}/podkladka`).then(res => res.data)
+                const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=${path}`;
+                const link = document.createElement('a');
+                link.href = fileUrl;
+                link.download = `${sheetData?.basic?.name}_podkladka.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                if (axios.isAxiosError(error) && error.response?.status === 400) {
+                    toast.error("Nie można pobrać podsumowania.", {
+                        description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
+                    });
+                    return;
+                }
+                return;
+            }
         }
 
         download();
@@ -530,6 +616,20 @@ const SheetCard = () => {
                                 >
                                     <IoMdDownload className="w-5 h-5" />
                                     Pobierz potwierdzenie dynamicznego
+                                </Button>}
+                                {sheetData?.basic?.closed_at && <Button
+                                    className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition shadow"
+                                    onClick={handleDownloadDynSumUp}
+                                >
+                                    <IoMdDownload className="w-5 h-5" />
+                                    Pobierz podsumowanie
+                                </Button>}
+                                {sheetData?.basic?.signing_at && <Button
+                                    className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition shadow"
+                                    onClick={handleDownloadPodladka}
+                                >
+                                    <IoMdDownload className="w-5 h-5" />
+                                    Pobierz podkładka
                                 </Button>}
                             </div>}
                         </TabsContent>

@@ -18,26 +18,26 @@ import { toast } from "sonner";
 import axios from "axios";
 
 interface SheetPosition {
-  id: number;
-  TowId: number;
-  ItemName: string;
-  MainCode: string;
-  ExtraCodes: string;
-  counted: number;
-  expected: number;
-  delta: number;
-  deltaValue: number;
-  onPcMarket: number;
-  onShelf: number;
-  newDelta: number;
-  RetailPrice: number;
+    id: number;
+    TowId: number;
+    ItemName: string;
+    MainCode: string;
+    ExtraCodes: string;
+    counted: number;
+    expected: number;
+    delta: number;
+    deltaValue: number;
+    onPcMarket: number;
+    onShelf: number;
+    newDelta: number;
+    RetailPrice: number;
 }
 
 interface SignSheetRequest {
-  id: number;
-  TowId: number;
-  onPcMarket: number;
-  onShelf: number;
+    id: number;
+    TowId: number;
+    onPcMarket: number;
+    onShelf: number;
 }
 
 const SignSheet = () => {
@@ -77,7 +77,7 @@ const SignSheet = () => {
             closeSignSheetStoreModal();
             setSheetData(null);
         } catch (error) {
-            if(axios.isAxiosError(error) && error.response?.status === 400) {
+            if (axios.isAxiosError(error) && error.response?.status === 400) {
                 toast.error("Nie można podpisać arkusza.", {
                     description: error.response?.data?.message || "Wystąpił błąd podczas podpisywania arkusza."
                 });
@@ -88,6 +88,75 @@ const SignSheet = () => {
 
     }, [sheetId, sheetData, closeSignSheetStoreModal]);
 
+    const downloadSheetSumUp = useCallback(async () => {
+        if (!sheetId) return;
+        try {
+            const path = await axiosInterface.get(`pdf/sheet/${sheetId}/dynsumup`).then(res => res.data)
+            const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=${path}`;
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.download = `arkusz_${sheetId}_dynsumup.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 400) {
+                toast.error("Nie można pobrać podsumowania.", {
+                    description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
+                });
+                return;
+            }
+            return;
+        }
+    }, [sheetId]);
+
+    const signSheetAndDownload = useCallback(async () => {
+        if (!sheetId || !sheetData) return;
+
+        const changedRows: SignSheetRequest[] = sheetData
+            .filter((pos) => Number(pos.newDelta) !== Number(pos.delta))
+            .map((pos) => ({
+                id: pos.id,
+                TowId: pos.TowId,
+                onPcMarket: pos.onPcMarket,
+                onShelf: pos.onShelf
+            }));
+
+        try {
+            await axiosInterface.put(`sheet/${sheetId}/sign`, { positions: changedRows });
+            toast.success("Arkusz podpisany pomyślnie.");
+            closeSignSheetStoreModal();
+            setSheetData(null);
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 400) {
+                toast.error("Nie można podpisać arkusza.", {
+                    description: error.response?.data?.message || "Wystąpił błąd podczas podpisywania arkusza."
+                });
+                return;
+            }
+            return;
+        }
+
+        try {
+            const path = await axiosInterface.get(`pdf/sheet/${sheetId}/podkladka`).then(res => res.data)
+            const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=${path}`;
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.download = `arkusz_${sheetId}_podkladka.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 400) {
+                toast.error("Nie można pobrać podsumowania.", {
+                    description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
+                });
+                return;
+            }
+            return;
+        }
+    }, [sheetId, sheetData, closeSignSheetStoreModal]);
+
     if (!sheetId) return null;
 
     return (
@@ -95,8 +164,17 @@ const SignSheet = () => {
 
             {/* <DialogContent className="min-w-7xl h-[90vh] flex flex-col gap-0 p-0" showCloseButton={false}> */}
             <DialogContent className="sm:max-w-[1400px]  max-h-[700px] flex flex-col">
-                <DialogHeader className="gap-0 p-2">
-                    <DialogTitle className="text-2xl font-bold mb-2">Podpisz arkusz {sheetId}</DialogTitle>
+                <DialogHeader className="gap-0 p-2 pb-0">
+                    <DialogTitle className="text-2xl font-bold mb-2 flex items-center justify-between">
+                        <span>Podpisz arkusz {sheetId}</span>
+                        <Button
+                            className="p-5"
+                            disabled={sheetData?.some((pos) => isNaN(Number(pos.onShelf)) || isNaN(Number(pos.newDelta)) || pos.onShelf < 0) || sheetData?.some((pos) => isNaN(Number(pos.newDelta)))}
+                            onClick={downloadSheetSumUp}
+                        >
+                            Pobierz podsumowanie
+                        </Button>
+                    </DialogTitle>
                 </DialogHeader>
                 {!isLoading && <>
                     {/* <div className="overflow-y-auto max-h-full"> */}
@@ -312,10 +390,20 @@ const SignSheet = () => {
                             <TableRow className="text-sm">
                                 <TableCell colSpan={10} className="text-left text-muted-foreground">
                                     <Button
-                                        className="w-full p-5 mt-5 mb-3"
+                                        className="w-full p-5 mt-5"
                                         disabled={sheetData?.some((pos) => isNaN(Number(pos.onShelf)) || isNaN(Number(pos.newDelta)) || pos.onShelf < 0) || sheetData?.some((pos) => isNaN(Number(pos.newDelta)))}
                                         onClick={signSheet}>
                                         Podpisz arkusz
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                            <TableRow className="text-sm">
+                                <TableCell colSpan={10} className="text-left text-muted-foreground">
+                                    <Button
+                                        className="w-full p-5 mb-3"
+                                        disabled={sheetData?.some((pos) => isNaN(Number(pos.onShelf)) || isNaN(Number(pos.newDelta)) || pos.onShelf < 0) || sheetData?.some((pos) => isNaN(Number(pos.newDelta)))}
+                                        onClick={signSheetAndDownload}>
+                                        Podpisz arkusz i pobierz podkładka
                                     </Button>
                                 </TableCell>
                             </TableRow>

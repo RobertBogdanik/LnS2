@@ -19,4 +19,14 @@ export class PdfController {
   async getDynamicSheetPdf(@Param('id') id: number) {
     return this.pdfService.generateDynamicSheetPdf(id);
   }
+
+  @Get('sheet/:id/dynsumup')
+  async getDynamicSumUpSheetPdf(@Param('id') id: number) {
+    return this.pdfService.generateSumUpSheetPdf(id);
+  }
+
+  @Get('sheet/:id/podkladka')
+  async getPodkladkaPdf(@Param('id') id: number) {
+    return this.pdfService.generatePodkladkaPdf(id);
+  }
 }

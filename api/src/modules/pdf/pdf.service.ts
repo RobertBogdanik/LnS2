@@ -5,7 +5,7 @@ import * as JsBarcode from 'jsbarcode';
 import { createCanvas } from 'canvas';
 import * as fs from 'fs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PC5MarketView, Sheet, SheetPosition } from 'src/database/mssql.entity';
+import { Import, ImportPosition, PC5MarketView, Sheet, SheetPosition } from 'src/database/mssql.entity';
 import { In, Repository } from 'typeorm';
 import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
@@ -3218,6 +3218,12 @@ export class PdfService {
         @InjectRepository(PC5MarketView)
         private readonly pc5MarketViewRepository: Repository<PC5MarketView>,
 
+        @InjectRepository(ImportPosition)
+        private readonly importPositionRepository: Repository<ImportPosition>,
+
+        @InjectRepository(Import)
+        private readonly importRepository: Repository<Import>,
+        
         private readonly configService: ConfigService,
     ) {}
 
@@ -3391,6 +3397,7 @@ export class PdfService {
 
         return lines.join('\n')
     }
+
     async generateKreskiSheetPdf(id: number) {
         const sheet = await this.sheetRepository.findOne({ where: { id }, relations: ['author'] });
         if (!sheet) {
@@ -3533,6 +3540,360 @@ export class PdfService {
 
 
         const filePath = `sheets/basic/${sheet.name}_kreski.pdf`;
+        // const rootPath = `C:\\git\\LnS2\\api\\files`;
+        
+        const basicPath = this.configService.get<string>('BASIC_PATH');
+        if (!basicPath)  throw new Error('BASIC_PATH is not defined');
+        const fullPath = path.join(basicPath, filePath);
+        const pdfDoc = pdfMake.createPdf(docDefinition);
+
+        return new Promise<string>((resolve, reject) => {
+            pdfDoc.getBuffer((buffer: Buffer) => {
+            try {
+                fs.writeFileSync(fullPath, buffer);
+                resolve(filePath);
+            } catch (err) {
+                reject(err);
+            }
+            });
+        });
+    }
+    
+    async generatePodkladkaPdf(id: number) {
+        const sheet = await this.sheetRepository.findOne({ where: { id }, relations: ['author'] });
+        if (!sheet) {
+            return new BadRequestException(['Nie znaleziono arkusza o podanym ID.']);
+        }
+
+        const canvas = createCanvas(200, 100);
+        JsBarcode(canvas, sheet.name, {
+            width: 1,
+            height: 25,
+            margin: 0,
+            displayValue: false
+        });
+
+        const qrCodeBase64 = canvas.toDataURL('image/jpeg');
+
+        const dataToPrint: any = []
+
+        const imports = await this.importRepository.find({
+            where: { sheet: { id } }
+        });
+        const importPositions = await this.importPositionRepository.find({
+            where: { import: { id: In(imports.map(i => i.id)) } },
+            relations: ['import', 'sheetPosition']
+        });
+        
+        const sheetPos = await this.sheetPositionRepository.find({
+            where: { sheet: { id } },
+            order: { productId: 'ASC' }
+        });
+        
+        const productsDetails = await this.pc5MarketViewRepository.find({
+            where: { TowId: In(sheetPos.map(p => p.productId)) }
+        });
+        
+        sheetPos.forEach(position => {
+            // Sum expectedQuantity from all importPositions for this sheetPosition
+            const relatedImportPositions = importPositions.filter(
+                pos => pos.sheetPosition?.id === position.id && pos.isDisabled === false
+            );
+            const expected = relatedImportPositions.reduce((sum, pos) => sum + (pos.expectedQuantity || 0), 0);
+            const counted = relatedImportPositions.reduce((sum, pos) => sum + (pos.quantity || 0), 0);
+            const exp = relatedImportPositions.length > 0 ? expected : position.expectedQuantity;
+
+            (position as any).counted = counted;
+            (position as any).expected = exp;
+            (position as any).delta = counted - exp;
+
+            // Attach productDetails from PC5MarketView
+            const productDetail = productsDetails.find(p => p.TowId === position.productId);
+            (position as any).onShelf = Number(((productDetail?.StockQty || 0) + (counted - exp)).toFixed(3));
+            (position as any).onPcMarket = productDetail?.StockQty || 0;
+            (position as any).newDelta = counted - exp;
+
+            (position as any).TowId = productDetail ? productDetail.TowId : 0;
+            (position as any).ItemName = productDetail ? productDetail.ItemName : 'Brak w PCMarket';
+            (position as any).MainCode = productDetail ? productDetail.MainCode : '';
+            (position as any).ExtraCodes = productDetail ? productDetail.ExtraCodes : '';
+            (position as any).deltaValue = productDetail ? productDetail.RetailPrice * ((counted - exp)) : 0;
+            (position as any).RetailPrice = productDetail ? productDetail.RetailPrice : 0;
+        });
+
+        sheetPos.forEach((item:any, index) => {
+            dataToPrint.push([
+                { text: item.TowId, fontSize: 10, color: '#4f4f4f', alignment: 'right' },
+                { text: item.ItemName, fontSize: 10, alignment: 'left', border: [false, true, false, true] },
+                {
+                    stack: [
+                        { text: item.MainCode.replace(/\?/g, ''), bold: false, fontSize: 10 },
+                        ...item.ExtraCodes.split(';').map(code => ({ text: code.trim().replace(/\?/g, ''), bold: false, fontSize: 10, color: '#4f4f4f' }))
+                    ]
+                },
+                { text: item.expected?.toString(), fontSize: 10, alignment: 'right' },
+                { text: item.counted?.toString(), fontSize: 10, alignment: 'left' },
+                { 
+                    text: item.delta?.toString(), 
+                    fontSize: 10, 
+                    alignment: 'right', 
+                    color: item.delta > 0 ? 'green' : (item.delta < 0 ? 'red' : undefined),
+                    bold: true
+                },
+            ])
+        })
+
+        const docDefinition: any = {
+            content: [
+                {
+                    table: {
+                        headerRows: 1,
+                        widths: ['auto', '*', 'auto', 'auto', 110, 30],
+                        body: [
+                            [
+                                { text: 'TowID', fillColor: '#e0e0e0', fontSize: 11 },
+                                { text: 'Nazwa', fillColor: '#e0e0e0', fontSize: 11 },
+                                { text: 'Kod', fillColor: '#e0e0e0', fontSize: 11 },
+                                { text: 'Stan', fillColor: '#e0e0e0', fontSize: 11 },
+                                { text: 'Policzono', fillColor: '#e0e0e0', fontSize: 11 },
+                                { text: 'Delta', fillColor: '#e0e0e0', fontSize: 11 }
+
+                            ],
+                            ...dataToPrint
+                        ],
+                    },
+                },
+            ],
+            header: (currentPage, pageCount) => {
+                return [
+                    { 
+                        text: `${sheet.name} ${sheet.author.username}`, 
+                        alignment: 'center',
+                        margin: [0, 10], 
+                        fontSize: 9,
+                        bold: true,
+                        color: '#000000'
+                    },  
+                ]
+            },
+            footer: (currentPage, pageCount) => {
+                const randomCitation = this.getCitaion()
+                return [
+                    {
+                        image: qrCodeBase64,
+                        alignment: 'left',
+                        margin: [20, 0],
+                    },
+                    { 
+                        text: randomCitation, 
+                        alignment: 'center',
+                        margin: [0, -24], 
+                        fontSize: 9 
+                    },  
+                    {
+                        text: `Strona ${currentPage} z ${pageCount}`,
+                        alignment: 'right',
+                        fontSize: 9, 
+                        margin: [0, 10, 30, 0],
+                    }
+                ];
+            },
+            pageSize: 'A4',
+            pageMargins: [50, 25, 20, 45],
+            background: [
+                {
+                    canvas: [
+                        {
+                            type: 'line',
+                            x1: 0,
+                            y1: 421,
+                            x2: 50,
+                            y2: 421,
+                            lineWidth: 1,
+                            lineColor: '#000000',
+                        },
+                    ],
+                },
+            ],
+        };
+
+
+        const filePath = `sheets/podkladki/${sheet.name}.pdf`;
+        // const rootPath = `C:\\git\\LnS2\\api\\files`;
+        
+        const basicPath = this.configService.get<string>('BASIC_PATH');
+        if (!basicPath)  throw new Error('BASIC_PATH is not defined');
+        const fullPath = path.join(basicPath, filePath);
+        const pdfDoc = pdfMake.createPdf(docDefinition);
+
+        return new Promise<string>((resolve, reject) => {
+            pdfDoc.getBuffer((buffer: Buffer) => {
+            try {
+                fs.writeFileSync(fullPath, buffer);
+                resolve(filePath);
+            } catch (err) {
+                reject(err);
+            }
+            });
+        });
+    }
+
+    async generateSumUpSheetPdf(id: number) {
+        const sheet = await this.sheetRepository.findOne({ where: { id }, relations: ['author'] });
+        if (!sheet) {
+            return new BadRequestException(['Nie znaleziono arkusza o podanym ID.']);
+        }
+
+        const dataToPrint: any = []
+
+        const imports = await this.importRepository.find({
+            where: { sheet: { id } }
+        });
+        const importPositions = await this.importPositionRepository.find({
+            where: { import: { id: In(imports.map(i => i.id)) } },
+            relations: ['import', 'sheetPosition']
+        });
+        
+        const sheetPos = await this.sheetPositionRepository.find({
+            where: { sheet: { id } },
+            order: { productId: 'ASC' }
+        });
+        
+        const productsDetails = await this.pc5MarketViewRepository.find({
+            where: { TowId: In(sheetPos.map(p => p.productId)) }
+        });
+        
+        sheetPos.forEach(position => {
+            // Sum expectedQuantity from all importPositions for this sheetPosition
+            const relatedImportPositions = importPositions.filter(
+                pos => pos.sheetPosition?.id === position.id && pos.isDisabled === false
+            );
+            const expected = relatedImportPositions.reduce((sum, pos) => sum + (pos.expectedQuantity || 0), 0);
+            const counted = relatedImportPositions.reduce((sum, pos) => sum + (pos.quantity || 0), 0);
+            const exp = relatedImportPositions.length > 0 ? expected : position.expectedQuantity;
+
+            (position as any).counted = counted;
+            (position as any).expected = exp;
+            (position as any).delta = counted - exp;
+
+            // Attach productDetails from PC5MarketView
+            const productDetail = productsDetails.find(p => p.TowId === position.productId);
+            (position as any).onShelf = Number(((productDetail?.StockQty || 0) + (counted - exp)).toFixed(3));
+            (position as any).onPcMarket = productDetail?.StockQty || 0;
+            (position as any).newDelta = counted - exp;
+
+            (position as any).TowId = productDetail ? productDetail.TowId : 0;
+            (position as any).ItemName = productDetail ? productDetail.ItemName : 'Brak w PCMarket';
+            (position as any).MainCode = productDetail ? productDetail.MainCode : '';
+            (position as any).ExtraCodes = productDetail ? productDetail.ExtraCodes : '';
+            (position as any).deltaValue = productDetail ? productDetail.RetailPrice * ((counted - exp)) : 0;
+            (position as any).RetailPrice = productDetail ? productDetail.RetailPrice : 0;
+        });
+
+        sheetPos.filter((pos: any) => pos.delta !== 0).forEach((item:any, index) => {
+            dataToPrint.push([
+                { text: item.TowId, fontSize: 10, color: '#4f4f4f', alignment: 'right' },
+                { text: item.ItemName, fontSize: 10, alignment: 'left', border: [false, true, false, true] },
+                {
+                    stack: [
+                        { text: item.MainCode.replace(/\?/g, ''), bold: false, fontSize: 10 },
+                        ...item.ExtraCodes.split(';').map(code => ({ text: code.trim().replace(/\?/g, ''), bold: false, fontSize: 10, color: '#4f4f4f' }))
+                    ]
+                },
+                { text: item.counted?.toString(), fontSize: 10, alignment: 'right' },
+                { text: item.expected?.toString(), fontSize: 10, alignment: 'right' },
+                { 
+                    text: item.delta?.toString(), 
+                    fontSize: 10, 
+                    alignment: 'right', 
+                    color: item.delta > 0 ? 'green' : (item.delta < 0 ? 'red' : undefined),
+                    bold: true
+                },
+                { text: item.onShelf?.toString(), fontSize: 10, alignment: 'right' },
+                { text: item.onPcMarket?.toString(), fontSize: 10, alignment: 'right' }
+            ])
+        })
+
+        const docDefinition: any = {
+            content: [
+                {
+                    table: {
+                        headerRows: 1,
+                        widths: ['auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
+                        body: [
+                            [
+                                { text: 'TowID', fillColor: '#e0e0e0', fontSize: 11 },
+                                { text: 'Nazwa', fillColor: '#e0e0e0', fontSize: 11 },
+                                { text: 'Kod', fillColor: '#e0e0e0', fontSize: 11 },
+                                { text: 'Pol', fillColor: '#e0e0e0', fontSize: 11 },
+                                { text: 'Ocz', fillColor: '#e0e0e0', fontSize: 11 },
+                                { text: 'Del', fillColor: '#e0e0e0', fontSize: 11 },
+                                { text: 'Pół', fillColor: '#e0e0e0', fontSize: 11 },
+                                { text: 'PcM', fillColor: '#e0e0e0', fontSize: 11 }
+
+                            ],
+                            ...dataToPrint
+                        ],
+                    },
+                    layout: {
+                        vLineWidth: function(i, node) {
+                            if (i === 6) return 2;
+                            return 0.5;
+                        },
+                    }
+                },
+            ],
+            header: (currentPage, pageCount) => {
+                return [
+                    { 
+                        text: `${sheet.name} ${sheet.author.username}`, 
+                        alignment: 'center',
+                        margin: [0, 10], 
+                        fontSize: 9,
+                        bold: true,
+                        color: '#00ff00'
+                    },  
+                ]
+            },
+            
+            footer: (currentPage, pageCount) => {
+                const randomCitation = this.getCitaion()
+                return [
+                    { 
+                        text: randomCitation, 
+                        alignment: 'center',
+                        margin: [0, 0], 
+                        fontSize: 9 
+                    },  
+                    {
+                        text: `Strona ${currentPage} z ${pageCount}`,
+                        alignment: 'right',
+                        fontSize: 9, 
+                        margin: [0, -15, 30, 0],
+                    }
+                ];
+            },
+            pageSize: 'A4',
+            pageMargins: [50, 25, 20, 45],
+            background: [
+                {
+                    canvas: [
+                        {
+                            type: 'line',
+                            x1: 0,
+                            y1: 421,
+                            x2: 50,
+                            y2: 421,
+                            lineWidth: 1,
+                            lineColor: '#000000',
+                        },
+                    ],
+                },
+            ],
+        };
+
+
+        const filePath = `sheets/dynamic/${sheet.name}_sumup.pdf`;
         // const rootPath = `C:\\git\\LnS2\\api\\files`;
         
         const basicPath = this.configService.get<string>('BASIC_PATH');
