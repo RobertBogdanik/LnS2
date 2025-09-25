@@ -3672,7 +3672,7 @@ export class PdfService {
                         margin: [0, 10], 
                         fontSize: 9,
                         bold: true,
-                        color: '#000000'
+                        color: '#ff0000'
                     },  
                 ]
             },
@@ -3809,8 +3809,8 @@ export class PdfService {
                     color: item.delta > 0 ? 'green' : (item.delta < 0 ? 'red' : undefined),
                     bold: true
                 },
+                { text: item.onPcMarket?.toString(), fontSize: 10, alignment: 'right' },
                 { text: item.onShelf?.toString(), fontSize: 10, alignment: 'right' },
-                { text: item.onPcMarket?.toString(), fontSize: 10, alignment: 'right' }
             ])
         })
 
@@ -3828,8 +3828,8 @@ export class PdfService {
                                 { text: 'Pol', fillColor: '#e0e0e0', fontSize: 11 },
                                 { text: 'Ocz', fillColor: '#e0e0e0', fontSize: 11 },
                                 { text: 'Del', fillColor: '#e0e0e0', fontSize: 11 },
+                                { text: 'PcM', fillColor: '#e0e0e0', fontSize: 11 },
                                 { text: 'Pół', fillColor: '#e0e0e0', fontSize: 11 },
-                                { text: 'PcM', fillColor: '#e0e0e0', fontSize: 11 }
 
                             ],
                             ...dataToPrint
