@@ -13,6 +13,9 @@ import { usePathname } from "next/navigation";
 import SearchModal from "@/components/search/searchModal";
 import { useSearchModalStore } from "@/context/search";
 import { useUserStore } from "@/context/user";
+import { useEffect, useMemo } from "react";
+import jwt from 'jsonwebtoken';
+import { toast } from "sonner";
 
 export default function DashboardLayout({
     children,
@@ -29,16 +32,47 @@ export default function DashboardLayout({
 
     const {
         userName,
+        setUser
     } = useUserStore();
 
-    const navLinks = [
+    const navLinks = useMemo(() => ([
         { href: "/v2/", label: "Tworzenie", icon: <MdOutlineAdd /> },
         { href: "/v2/arkusze", label: "Arkusze", icon: <LuFileSpreadsheet /> },
         { href: "/v2/import", label: "Import", icon: <CiImport /> },
         { href: "/v2/eksport", label: "Eksport", icon: <CiExport /> },
         { href: "/v2/arkusze/podpisz", label: "Podpisywanie", icon: <PiStampThin /> },
         { href: "/v2/ustawienia", label: "Ustawienia", icon: <CiSettings /> },
-    ];
+    ]), []);
+
+    useEffect(() => {
+        const token = sessionStorage.getItem("jwt");
+        if (!token) {
+            toast.error("Brak tokenu dostępu");
+            logout();
+            return;
+        }
+
+        const decoded = jwt.decode(token);
+        if (
+            decoded &&
+            typeof decoded === "object" &&
+            "usid" in decoded &&
+            "userName" in decoded &&
+            "isAdmin" in decoded &&
+            "defaultPiku" in decoded
+        ) {
+            const data = decoded as {
+                usid: number;
+                userName: string;
+                isAdmin: boolean;
+                defaultPiku: string;
+            };
+            setUser(data.usid, data.userName, data.isAdmin, data.defaultPiku);
+        } else {
+            toast.error("Nieprawidłowy token dostępu");
+            logout();
+        }
+    }, []);
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -52,9 +86,7 @@ export default function DashboardLayout({
                 </div>
             </div>
             <nav className="flex justify-between items-center border-b px-6 py-3 bg-white">
-                {/* Left side – links */}
                 <div className="flex items-center gap-4">
-
 
                     {navLinks.map(({ href, label, icon }) => (
                         <Link key={href} href={href}>
