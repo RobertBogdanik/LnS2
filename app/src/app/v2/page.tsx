@@ -93,11 +93,11 @@ export default function ProductTable() {
   } = useProductListStore();
 
   const {
-    defaultPiku
+    defaultPiku,
   } = useUserStore();
 
   useEffect(() => {
-    setSelectedPiku(defaultPiku || 'A');
+    setSelectedPiku(defaultPiku.trim());
   }, [defaultPiku])
 
   const handleRowClick = (index: number) => {
@@ -349,7 +349,7 @@ export default function ProductTable() {
                   key={option}
                   className={`flex items-center gap-1 px-3 py-1 rounded-md border cursor-pointer transition-colors ${
                   selctedPiku === option
-                    ? "border-gray-500 bg-gray-100 font-bold"
+                    ? "border-red-600 bg-grreday-100 font-bold text-red-600"
                     : "border-zinc-300 bg-white dark:bg-zinc-900"
                   }`}
                   style={{ outline: "none" }}

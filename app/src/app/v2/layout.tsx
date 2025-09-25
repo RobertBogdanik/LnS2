@@ -12,6 +12,7 @@ import { PiStampThin } from "react-icons/pi";
 import { usePathname } from "next/navigation";
 import SearchModal from "@/components/search/searchModal";
 import { useSearchModalStore } from "@/context/search";
+import { useUserStore } from "@/context/user";
 
 export default function DashboardLayout({
     children,
@@ -25,6 +26,10 @@ export default function DashboardLayout({
     }
 
     const pathname = usePathname();
+
+    const {
+        userName,
+    } = useUserStore();
 
     const navLinks = [
         { href: "/v2/", label: "Tworzenie", icon: <MdOutlineAdd /> },
@@ -67,6 +72,7 @@ export default function DashboardLayout({
                 </div>
 
                 <div className="flex items-center gap-4">
+                    <span className="font-bold text-red-600 block">{userName}</span>
                     <div className="relative">
                         <Input
                             placeholder="Szukaj..."
