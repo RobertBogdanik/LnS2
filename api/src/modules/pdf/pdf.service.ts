@@ -3958,7 +3958,7 @@ export class PdfService {
                         }, {
                             width: '*',
                             stack: [
-                                 { text: 'Jestem świadomy, że liczenie dynamiczne może prowadzić do nieścisłości, ponieważ licząc wybraną półkę mogę pominąć towar znajdujący się w magazynie, dostawie lub innym miejscu. Jeżeli przypadkowo szczytami kod który nie był liczony muszę ten towar policzyć na gotowo.', alignment: 'left', fontSize: 8 },
+                                 { text: 'Jestem świadomy, że towar podlega rotacji, a jego stan ulega ciągłym zmianom. Dodatkowo, podczas liczenia mogę pominąć produkty znajdujące się w magazynie, dostawie bądź w innym miejscu. W przypadku przypadkowego zeskanowania kodu zobowiązany jestem do niezwłocznego dokonania pełnego przeliczenia tego towaru.', alignment: 'left', fontSize: 8 },
                             ]
                         }, {
                             width: '225',
