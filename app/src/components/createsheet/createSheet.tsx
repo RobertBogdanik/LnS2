@@ -42,11 +42,13 @@ type TempSheetData = {
 const CreateSheet = ({
     isOpen,
     list,
-    onClose
+    onClose,
+    piku
 }: {
     isOpen: boolean;
     list: number[];
     onClose: () => void
+    piku: string;
 }) => {
     const [step, setStep] = React.useState(0);
     const [data, setData] = React.useState<TempSheetData>({ passed: [], notActive: [], used: [], notFound: [] });
@@ -56,15 +58,15 @@ const CreateSheet = ({
 
         const res = await axiosInterface.post('/sheet/', {
             origin: sheetId,
-            piku: 'A' //TODO: make dynamic
+            piku: piku
         });
 
         setData(res.data);
         setStep(3);
-    }, []);
+    }, [piku]);
 
     const createTempSheet = useCallback(async () => {
-        const res = await axiosInterface.post('/sheet/temp', { products: list, piku: 'A' }); //TODO: make dynamic
+        const res = await axiosInterface.post('/sheet/temp', { products: list, piku: piku });
 
         setData(res.data);
 
@@ -82,7 +84,7 @@ const CreateSheet = ({
             return;
         }
         setStep(1);
-    }, [list, createSheet]);
+    }, [list, createSheet, piku]);
 
     useEffect(() => {
         if (isOpen) {

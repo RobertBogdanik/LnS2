@@ -39,7 +39,8 @@ export class AuthService {
     const jwtPayload = {
       usid: user.id,
       userName: user.username,
-      isAdmin: user.isAdmin
+      isAdmin: user.isAdmin,
+      defaultPiku: user.defaultPiku
     };
 
     const token = this.jwtService.sign(jwtPayload);

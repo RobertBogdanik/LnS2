@@ -22,7 +22,7 @@ import {
 import { useProductListStore } from "@/context/productList"
 import axiosInterface from "@/config/axios"
 import { ProductListDialog } from "@/components/products/productList"
-// import { useUserStore } from "@/context/user"
+import { FcCellPhone } from "react-icons/fc";
 import CreateSheet from "@/components/createsheet/createSheet"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -32,6 +32,7 @@ import { Label } from "@/components/ui/label"
 import { IoMdDownload } from "react-icons/io"
 import { Alert, AlertTitle } from "@/components/ui/alert"
 import { AlertCircleIcon } from "lucide-react"
+import { useUserStore } from "@/context/user"
 
 
 
@@ -51,7 +52,7 @@ type Product = {
 
 export default function ProductTable() {
 
-
+  const [selctedPiku, setSelectedPiku] = React.useState<string>('A');
   const [products, setProducts] = React.useState<Product[]>([]);
   const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const [openCreateModal, setOpenCreateModal] = React.useState(false);
@@ -91,10 +92,13 @@ export default function ProductTable() {
     openModal,
   } = useProductListStore();
 
-  // const {
-  //   userName,
-  //   isAdmin
-  // } = useUserStore();
+  const {
+    defaultPiku
+  } = useUserStore();
+
+  useEffect(() => {
+    setSelectedPiku(defaultPiku || 'A');
+  }, [defaultPiku])
 
   const handleRowClick = (index: number) => {
     setSelectedIndex(index);
@@ -215,7 +219,7 @@ export default function ProductTable() {
     <>
       <main className="flex-1 p-6">
         <ProductListDialog onClose={addSelectedProducts} />
-        <CreateSheet isOpen={openCreateModal} onClose={closeCreateSheet} list={products.map(p => p.TowId)} />
+        <CreateSheet isOpen={openCreateModal} onClose={closeCreateSheet} list={products.map(p => p.TowId)} piku={selctedPiku} />
 
         <AlertDialog open={dynamicCount.page > 0} onOpenChange={open => setDynamicCount({ ...dynamicCount, page: open ? dynamicCount.page : 0 })}>
           <AlertDialogContent>
@@ -337,6 +341,35 @@ export default function ProductTable() {
           <Shortcut keys="Enter" label="Dodaj" onClick={addNewPosition} />
           <Separator />
           <Shortcut keys="Del" label="Usuń z listy" onClick={deleteSelectedProduct} />
+          <div className="ml-auto">
+            <div className="flex gap-2">
+              <FcCellPhone size={28} />
+                {(['A', 'B', 'C', 'D', 'E', 'F', 'G'] as const).map(option => (
+                <label
+                  key={option}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-md border cursor-pointer transition-colors ${
+                  selctedPiku === option
+                    ? "border-gray-500 bg-gray-100 font-bold"
+                    : "border-zinc-300 bg-white dark:bg-zinc-900"
+                  }`}
+                  style={{ outline: "none" }}
+                >
+                  <input
+                  type="radio"
+                  name="dynamic-piku"
+                  value={option}
+                  checked={selctedPiku === option}
+                  onChange={() =>
+                    setSelectedPiku(option)
+                  }
+                  className="accent-gray-500 hidden"
+                  style={{ accentColor: "#3b82f6" }}
+                  />
+                  {option}
+                </label>
+                ))}
+            </div>
+          </div>
         </div>
       </footer>
     </>

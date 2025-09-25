@@ -37,7 +37,8 @@ export class SettingsService {
             card: body.card,
             isAdmin: body.isAdmin || false,
             isActive: true, 
-            created_at: new Date()
+            created_at: new Date(),
+            defaultPiku: body.defaultPiku || 'A'
         });
 
         this.logger.log(`User created: ${newUser.username} [${newUser.id}]`);
@@ -73,6 +74,7 @@ export class SettingsService {
         user.card = body.card ?? user.card;
         user.isAdmin = body.isAdmin ?? user.isAdmin;
         user.isActive = body.isActive ?? user.isActive;
+        user.defaultPiku = body.defaultPiku ?? user.defaultPiku;
 
         this.logger.log(`Updating user: ${user.username} [${user.id}]`);
 

@@ -185,12 +185,13 @@ export default function LoginForm() {
       userName: string;
       isAdmin: boolean;
       usid: number;
+      defaultPiku: string;
     }
 
     const userdata = jwt.decode(token) as JwtData | undefined | null;
     if (userdata) {
       console.log("Userdata:", userdata);
-      setUser(userdata.usid, userdata.userName, userdata.isAdmin);
+      setUser(userdata.usid, userdata.userName, userdata.isAdmin, userdata.defaultPiku || 'A');
       router.push("/v2");
     } else {
       toast.error("Nie można odczytać danych użytkownika z tokenu.");

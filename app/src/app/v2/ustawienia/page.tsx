@@ -23,9 +23,11 @@ const SettingsPage = () => {
         card: string;
         created_at: string;
         isAdmin: boolean;
+        defaultPiku: string;
     };
     const [users, setUsers] = useState<User[]>([]);
-    const [newUser, setNewUser] = useState<{ username: string; card: string; isAdmin: boolean }>({ username: "", card: "", isAdmin: false });
+    const [newUser, setNewUser] = useState<{ username: string; card: string; isAdmin: boolean; defaultPiku: string }>({ username: "", card: "", isAdmin: false, defaultPiku: "A" });
+    
     type Count = {
         id: number;
         name: string;
@@ -53,7 +55,7 @@ const SettingsPage = () => {
         const res = await axiosInterface.post('/settings/user', newUser);
         if (res.status === 201) {
             toast.success("Użytkownik dodany");
-            setNewUser({ username: "", card: "", isAdmin: false });
+            setNewUser({ username: "", card: "", isAdmin: false, defaultPiku: "A" });
             fetchData();
         } else {
             toast.error("Błąd podczas dodawania użytkownika");
@@ -114,6 +116,7 @@ const SettingsPage = () => {
                     <TableHead>Nazwa</TableHead>
                     <TableHead>Karta</TableHead>
                     <TableHead>Data stworzenia</TableHead>
+                    <TableHead>Pikacz</TableHead>
                     <TableHead>Uprawnienia</TableHead>
                     <TableHead></TableHead>
                 </TableRow>
@@ -129,6 +132,22 @@ const SettingsPage = () => {
                     </TableCell>
                     <TableCell>
                         <Input type="datetime-local" disabled className="border rounded px-2 py-1 w-full" />
+                    </TableCell>
+                    <TableCell>
+                        <Select name="defaultPiku" defaultValue={newUser.defaultPiku} onValueChange={(value) => setNewUser({ ...newUser, defaultPiku: value })}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Pikacz" />
+                            </SelectTrigger>
+                            <SelectContent className="w-full">
+                                <SelectItem value="A">Pikacz A</SelectItem>
+                                <SelectItem value="B">Pikacz B</SelectItem>
+                                <SelectItem value="C">Pikacz C</SelectItem>
+                                <SelectItem value="D">Pikacz D</SelectItem>
+                                <SelectItem value="E">Pikacz E</SelectItem>
+                                <SelectItem value="F">Pikacz F</SelectItem>
+                                <SelectItem value="G">Pikacz G</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </TableCell>
                     <TableCell>
                         <Select name="isAdmin" defaultValue="0" onValueChange={(value) => setNewUser({ ...newUser, isAdmin: value === "1" })}>
@@ -156,6 +175,22 @@ const SettingsPage = () => {
                         </TableCell>
                         <TableCell>
                             {new Date(user.created_at).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                            <Select defaultValue={user.defaultPiku.trim()} onValueChange={(value) => modifyUserField(user.id, "defaultPiku", value)}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Pikacz" />
+                                </SelectTrigger>
+                                <SelectContent className="w-full">
+                                    <SelectItem value="A">Pikacz A</SelectItem>
+                                    <SelectItem value="B">Pikacz B</SelectItem>
+                                    <SelectItem value="C">Pikacz C</SelectItem>
+                                    <SelectItem value="D">Pikacz D</SelectItem>
+                                    <SelectItem value="E">Pikacz E</SelectItem>
+                                    <SelectItem value="F">Pikacz F</SelectItem>
+                                    <SelectItem value="G">Pikacz G</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </TableCell>
                         <TableCell>
                             <Select defaultValue={user.isAdmin ? "1" : "0"} onValueChange={(value) => modifyUserField(user.id, "isAdmin", value === "1")}>

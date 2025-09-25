@@ -20,6 +20,9 @@ export class User {
 
   @Column({ default: true })
   isActive: boolean;
+
+  @Column({ default: 'A' })
+  defaultPiku: string;
 }
 
 // Counts Table
