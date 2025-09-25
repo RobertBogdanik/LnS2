@@ -308,12 +308,13 @@ export default function LoginForm() {
                       value={otp}
                       onChange={(value) => setOtp(value)}
                       className="w-full"
+                      autoFocus
                     >
-                      <InputOTPGroup className="w-full">
+                        <InputOTPGroup className="w-full border ">
                         {Array.from({ length: 13 }).map((_, index) => (
-                          <InputOTPSlot key={index} index={index} className="w-full aspect-square" />
+                          <InputOTPSlot key={index} index={index} className="w-full aspect-square border border-gray-800" />
                         ))}
-                      </InputOTPGroup>
+                        </InputOTPGroup>
                     </InputOTP>
                   </div>
                   <Button type="submit" className="m-auto w-min cursor-pointer">
