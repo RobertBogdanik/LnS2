@@ -110,6 +110,7 @@ const SheetCard = () => {
             link.click();
             document.body.removeChild(link);
         } catch (error) {
+            
                 if (axios.isAxiosError(error) && error.response?.status === 400) {
                     toast.error("Nie można pobrać podsumowania.", {
                         description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."

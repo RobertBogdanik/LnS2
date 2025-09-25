@@ -32,16 +32,17 @@ export default function DashboardLayout({
 
     const {
         userName,
-        setUser
+        setUser,
+        isAdmin
     } = useUserStore();
 
     const navLinks = useMemo(() => ([
-        { href: "/v2/", label: "Tworzenie", icon: <MdOutlineAdd /> },
-        { href: "/v2/arkusze", label: "Arkusze", icon: <LuFileSpreadsheet /> },
-        { href: "/v2/import", label: "Import", icon: <CiImport /> },
-        { href: "/v2/eksport", label: "Eksport", icon: <CiExport /> },
-        { href: "/v2/arkusze/podpisz", label: "Podpisywanie", icon: <PiStampThin /> },
-        { href: "/v2/ustawienia", label: "Ustawienia", icon: <CiSettings /> },
+        { href: "/v2/", label: "Tworzenie", icon: <MdOutlineAdd />, admin: false },
+        { href: "/v2/arkusze", label: "Arkusze", icon: <LuFileSpreadsheet />, admin: false },
+        { href: "/v2/import", label: "Import", icon: <CiImport />, admin: true },
+        { href: "/v2/eksport", label: "Eksport", icon: <CiExport />, admin: true },
+        { href: "/v2/arkusze/podpisz", label: "Podpisywanie", icon: <PiStampThin />, admin: false },
+        { href: "/v2/ustawienia", label: "Ustawienia", icon: <CiSettings />, admin: true },
     ]), []);
 
     useEffect(() => {
@@ -88,19 +89,19 @@ export default function DashboardLayout({
             <nav className="flex justify-between items-center border-b px-6 py-3 bg-white">
                 <div className="flex items-center gap-4">
 
-                    {navLinks.map(({ href, label, icon }) => (
-                        <Link key={href} href={href}>
-                            <Button
-                                variant="link"
-                                className={pathname === href ? "active underline" : ""}
-                            >
-                                {icon}{label}
-                            </Button>
-                        </Link>
-                    ))}
-                    {/* <Link href="/v2/raporty">
-                        <Button variant="link"><IoDocumentTextOutline />Raporty</Button>
-                    </Link> */}
+                    {navLinks
+                        .filter(link => !link.admin || isAdmin)
+                        .map(({ href, label, icon }) => (
+                            <Link key={href} href={href}>
+                                <Button
+                                    variant="link"
+                                    className={pathname === href ? "active underline" : ""}
+                                >
+                                    {icon}{label}
+                                </Button>
+                            </Link>
+                        ))
+                    }
                 </div>
 
                 <div className="flex items-center gap-4">
