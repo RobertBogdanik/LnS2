@@ -225,7 +225,7 @@ const SignSheet = () => {
                                                     : ""
                                         }
                                     >
-                                        {position.delta}
+                                        {Number(position.delta).toFixed(3)}
                                     </TableCell>
                                     <TableCell
                                         className={
@@ -298,7 +298,7 @@ const SignSheet = () => {
                                         <Input
                                             type="text"
                                             className={`w-30 ${isNaN(Number(position.newDelta)) ? "border-red-600 bg-red-100" : ""}`}
-                                            defaultValue={position.newDelta || 0}
+                                            defaultValue={Number(position.newDelta || 0).toFixed(3)}
                                             onFocus={e => {
                                                 e.target.select();
                                             }}
@@ -319,7 +319,7 @@ const SignSheet = () => {
                                                         p.id === position.id
                                                             ? {
                                                                 ...p,
-                                                                newDelta: Number(sanitizedValue || 0),
+                                                                newDelta: Number(Number(sanitizedValue || 0).toFixed(2)),
                                                                 onShelf: !isNaN(num)
                                                                     ? Number((num + Number(p.onPcMarket)).toFixed(3))
                                                                     : Number((Number(p.onPcMarket)).toFixed(3))
@@ -334,7 +334,7 @@ const SignSheet = () => {
                                                         p.id === position.id
                                                             ? {
                                                                 ...p,
-                                                                newDelta: Number((Number(p.onShelf) - Number(p.onPcMarket)).toFixed(3))
+                                                                newDelta: Number((Number(p.onShelf) - Number(p.onPcMarket)).toFixed(2))
                                                             }
                                                             : p
                                                     ) || null

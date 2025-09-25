@@ -54,7 +54,6 @@ export default function LoginForm() {
     }
   });
 
-  // Nowe stany do zarządzania wyborem liczenia
   const [availableCounts, setAvailableCounts] = useState<Count[]>([]);
   const [selectedCountId, setSelectedCountId] = useState<number | null>(null);
   const [showCountSelection, setShowCountSelection] = useState(false);
@@ -129,19 +128,17 @@ export default function LoginForm() {
       return;
     }
 
-    // Filtruj aktywne liczenia
     const activeCounts = counts.filter((c) => c.is_active && (!c.closed_at || new Date(c.closed_at) > new Date()));
 
-    // Jeśli jest tylko jedno aktywne liczenie, wybierz je automatycznie
     if (activeCounts.length === 1) {
       const selectedCount = activeCounts[0];
       completeLogin(token, user, selectedCount);
     }
-    // Jeśli jest więcej niż jedno aktywne liczenie, pokaż dialog wyboru
+
     else if (activeCounts.length > 1) {
-      sessionStorage.setItem("jwt", token); // Tymczasowo zapisz token
+      sessionStorage.setItem("jwt", token);
       setAvailableCounts(activeCounts);
-      setSelectedCountId(activeCounts[0].id); // Ustaw pierwsze jako domyślne
+      setSelectedCountId(activeCounts[0].id);
       setShowCountSelection(true);
       setLoginProgress({
         step: 3,
@@ -151,7 +148,6 @@ export default function LoginForm() {
         }
       });
     }
-    // Jeśli nie ma aktywnych liczeń, wybierz najnowsze zamknięte
     else {
       const selectedCount = counts.reduce((latest: Count, curr: Count) =>
         new Date(curr.closed_at ?? "") > new Date(latest.closed_at ?? "") ? curr : latest,
@@ -161,7 +157,6 @@ export default function LoginForm() {
     }
   };
 
-  // Funkcja do dokończenia procesu logowania po wyborze liczenia
   const completeLogin = (token: string, user: string, selectedCount: Count) => {
     sessionStorage.setItem("selectedCount", selectedCount.id.toString());
     setCount(
@@ -202,7 +197,6 @@ export default function LoginForm() {
     }
   };
 
-  // Funkcja do obsługi wyboru liczenia przez użytkownika
   const handleCountSelection = () => {
     if (!selectedCountId) {
       toast.error("Proszę wybrać liczenie");

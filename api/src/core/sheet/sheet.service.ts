@@ -624,6 +624,37 @@ export class SheetService {
             sheet.signing_at = new Date();
             sheet.signing_by = { id: UsId } as any;
             await transactionalEntityManager.save(sheet);
+
+            const sheetPos = await transactionalEntityManager.find(SheetPosition, { where: { sheet: { id } } });
+            const zeroedPositions = sheetPos.filter(sp => !positions.find((p) => p.id === sp.id));
+            console.log('Zeroed positions:', zeroedPositions);
+            const importsToZero = await transactionalEntityManager.find(ImportPosition, {
+                where: {
+                    sheetPosition: { id: In(zeroedPositions.map(p => p.id)) },
+                    isDisabled: false
+                },
+                relations: ['sheetPosition']
+            });
+            console.log('Imports to zero:', importsToZero);
+            
+            const zeroedPositionsToInsert = zeroedPositions.filter(
+                zp => !importsToZero.some(ip => ip.sheetPosition?.id == zp.id)
+            );
+            this.logger.log(`Zeroed positions to insert: ${zeroedPositionsToInsert.length}`);
+            console.log(zeroedPositionsToInsert);
+
+            for (const pos of zeroedPositionsToInsert){
+                const newImportPos = transactionalEntityManager.create(ImportPosition, {
+                    import: newImport,
+                    sheetPosition: { id: pos.id },
+                    expectedQuantity: pos.expectedQuantity,
+                    quantity: 0,
+                    lastChange: new Date(),
+                    isDisabled: false
+                });
+                await transactionalEntityManager.save(newImportPos);
+            }
+            this.logger.log(`Sheet ${id} signed by user ${UsId} with ${positions.length} positions updated and ${zeroedPositions.length} zeroed.`);
         });
 
         return { success: true };

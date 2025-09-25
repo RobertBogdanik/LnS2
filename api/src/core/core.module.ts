@@ -7,8 +7,9 @@ import { SheetModule } from './sheet/sheet.module';
 import { ImportModule } from './import/import.module';
 import { ProductsModule } from './products/products.module';
 import { SettingsModule } from './settings/settings.module';
+import { ExportModule } from './export/export.module';
 
 @Module({
-  imports: [SyncModule, AuthModule, FilesModule, RaportsModule, SheetModule, ImportModule, ProductsModule, SettingsModule]
+  imports: [SyncModule, AuthModule, FilesModule, RaportsModule, SheetModule, ImportModule, ProductsModule, SettingsModule, ExportModule]
 })
 export class CoreModule {}

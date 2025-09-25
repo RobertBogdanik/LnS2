@@ -509,10 +509,10 @@ const SheetCard = () => {
                                 </TableFooter>
                             </Table>
                         </TabsContent>
-                        <TabsContent value="imports" className="overflow-auto max-h-[400px] w-[500px]">
+                        <TabsContent value="imports" className="overflow-auto max-h-[400px] w-full">
                             <Accordion type="single">
                                 {sheetData?.imports?.map((importItem) => (
-                                    <AccordionItem key={importItem.id} value={`import-${importItem.id}`}>
+                                    <AccordionItem key={importItem.id} value={`import-${importItem.id}`} className="w-full">
                                         <AccordionTrigger>
                                             <div>
                                                 <Badge className={importItem.isDisabled ? "bg-red-600 text-white mr-5" : "bg-green-600 text-white mr-2"}>
@@ -524,7 +524,7 @@ const SheetCard = () => {
                                                 {importItem.id} ({importItem.positions.length} pozycji)
                                             </div>
                                         </AccordionTrigger>
-                                        <AccordionContent>
+                                        <AccordionContent className="w-full">
                                             <div className="w-full overflow-x-auto">
                                                 <Table className=" w-full">
                                                     <TableHeader>

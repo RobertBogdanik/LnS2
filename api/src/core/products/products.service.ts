@@ -14,17 +14,8 @@ export class ProductsService {
         @InjectRepository(SheetPosition)
         private readonly sheetPositionRepository: Repository<SheetPosition>,
 
-        @InjectRepository(Sheet)
-        private readonly sheetRepository: Repository<Sheet>,
-
         @InjectRepository(ImportPosition)
         private readonly importPositionRepository: Repository<ImportPosition>,
-
-        @InjectRepository(Import)
-        private readonly importRepository: Repository<Import>,
-
-        @InjectRepository(CountProductStatusView)
-        private readonly countProductStatusViewRepository: Repository<CountProductStatusView>,
 
         private readonly authService: AuthService,
         private readonly logger: WinstonLogger
@@ -214,7 +205,7 @@ export class ProductsService {
                 when: sheetPositions.sheet.closed_at,
                 who: sheetPositions.sheet.author.username,
                 where: 'Unknown',
-                what: `Zamknięto arkusz: ${sheetPositions.sheet.name}`
+                what: `Zaimportowano arkusz: ${sheetPositions.sheet.name}`
             });
         }
 
@@ -229,7 +220,7 @@ export class ProductsService {
         
 
         const importPositions = await this.importPositionRepository.find({ where: { sheetPosition: {id: sheetPositions.id} }, relations: ['import', 'import.author'] });
-        if (!importPositions) {
+        if (!importPositions || importPositions.length === 0) {
             this.logger.log(`No import positions found for sheetPositionId ${sheetPositions.id}.`);
 
             return {
@@ -248,11 +239,26 @@ export class ProductsService {
         importPositions.forEach(importPosition => {
             this.logger.log(`Processing import position for sheetPositionId ${sheetPositions.id}: ${importPosition.id}`);
             
+            let what = ""
+            
+            if (importPosition.import.type === 1) {
+                const delta = importPosition.quantity - importPosition.expectedQuantity;
+                what = `Import delty ${delta > 0 ? '+' : ''}${delta} (policzono ${importPosition.quantity}, oczekiwano ${importPosition.expectedQuantity})`;
+            } else if (importPosition.import.type === 3) {
+                const delta = importPosition.quantity - importPosition.expectedQuantity;
+                what = `Zmiana przy podpisywaniu ${delta > 0 ? '+' : ''}${delta} (na półce ${importPosition.quantity}, PcM ${importPosition.expectedQuantity})`;
+            } else if (importPosition.import.type === 5) {
+                what = `Eksport ${importPosition.quantity}, wyzerowano`;
+            } else {
+                const delta = importPosition.quantity - importPosition.expectedQuantity;
+                what = `Zmiana delty na ${delta > 0 ? '+' : ''}${delta} (na stanie ${importPosition.quantity}, PcM ${importPosition.expectedQuantity})`;
+            }
+
             history.push({
                 when: importPosition.import.importedAt,
                 who: importPosition.import.author.username,
                 where: 'Unknown',
-                what: importPosition.import.type === 1 ? `Import delty ${importPosition.quantity-importPosition.expectedQuantity > 0 ? '+' : ''}${importPosition.quantity-importPosition.expectedQuantity} (policzono ${importPosition.quantity}, oczekiwano ${importPosition.expectedQuantity})` : `Zmiana delty na ${importPosition.quantity-importPosition.expectedQuantity > 0 ? '+' : ''}${importPosition.quantity-importPosition.expectedQuantity} (na stanie ${importPosition.quantity}, PCmarket ${importPosition.expectedQuantity})`
+                what: what
             });
 
             if (importPosition.disabledAt && importPosition.disabledBy) {

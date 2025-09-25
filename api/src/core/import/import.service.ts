@@ -43,7 +43,7 @@ export class ImportService {
             throw new BadRequestException(['Nie znaleziono inwentaryzacji o podanym ID.']);
         }
 
-        const countName = countRecord.name;
+        const countName = countRecord.name.replaceAll(' ', '_').replaceAll('/', '-').replaceAll('\\', '-').replaceAll(',', '').replaceAll(':', '');
 
         const basicPath = this.configService.get<string>('BASIC_PATH');
         if (!basicPath) {
