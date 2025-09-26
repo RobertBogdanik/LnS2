@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button"
 const ArkuszPage = () => {
     const { openModal, lastChange } = useSheetCardStore();
     const [searchQuery, setSearchQuery] = useState<string>("")
-    const [searchFilters, setSearchFilters] = useState<string[]>(["open", "toBeApproved", "finished"])
+    const [searchFilters, setSearchFilters] = useState<string[]>(["open"])
 
     type ListParam = {
         total: number;
