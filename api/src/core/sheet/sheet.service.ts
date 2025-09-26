@@ -112,7 +112,7 @@ export class SheetService {
         return results;
     }
 
-    async findSheetsToSign(UsId: number, count: number) {
+    async findSheetsToSign(UsId: number, count: number, admin: boolean) {
         const userExists = await this.authService.verifyUser(UsId);
         if (!userExists) {
             this.logger.error(`User not found: ${UsId}`);
@@ -121,10 +121,19 @@ export class SheetService {
 
         this.logger.log(`Fetching sheets to sign for user: ${UsId}, count: ${count}`);
 
-        return this.sheetRepo.find({
+        if(admin) {
+            return (await this.sheetRepo.find({
+                where: { signing_at: IsNull(), closed_at: Not(IsNull()), active: true, count: { id: count } },
+                order: { created_at: 'DESC' },
+                relations: ['author']
+            })).map(el => ({...el, author: el.author.username}));
+        }
+
+        return (await this.sheetRepo.find({
             where: { signing_at: IsNull(), closed_at: Not(IsNull()), active: true, author: { id: UsId }, count: { id: count } },
-            order: { created_at: 'DESC' }
-        });
+            order: { created_at: 'DESC' },
+            relations: ['author']
+        })).map(el => ({...el, author: el.author.username}));
     }
 
     async findSheetsToSignPos(id: number, UsId: number, count: number) {

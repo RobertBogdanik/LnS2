@@ -12,6 +12,7 @@ const SignPage = () => {
         id: string;
         name: string;
         closed_at: string;
+        author: string;
     };
     const [sheets, setSheets] = useState<Sheet[]>([]);
     const [loading, setLoading] = useState(true);
@@ -42,6 +43,7 @@ const SignPage = () => {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Nazwa</TableHead>
+                            <TableHead>Autor</TableHead>
                             <TableHead>Oczekuje od</TableHead>
                             <TableHead></TableHead>
                         </TableRow>
@@ -50,6 +52,7 @@ const SignPage = () => {
                         {sheets.map((sheet) => (
                             <TableRow key={sheet.id}>
                                 <TableCell>{sheet.name}</TableCell>
+                                <TableCell>{sheet.author}</TableCell>
                                 <TableCell>{new Date(sheet.closed_at).toLocaleString()}</TableCell>
                                 <TableCell className="text-right">
                                     <Button variant="outline" onClick={() => openSignSheetStoreModal(sheet.id)}>Podpisz</Button>

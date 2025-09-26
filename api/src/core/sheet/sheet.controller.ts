@@ -30,7 +30,7 @@ export class SheetController {
     if (!headers.decodedJwt?.usid) throw new UnauthorizedException('Brak uprawnień do podpisania arkusza');
     if (!headers.count) throw new UnauthorizedException('Brak liczeania');
 
-    return this.sheetService.findSheetsToSign(headers.decodedJwt.usid, headers.count);
+    return this.sheetService.findSheetsToSign(headers.decodedJwt.usid, headers.count, headers.decodedJwt.isAdmin);
   }
 
   
