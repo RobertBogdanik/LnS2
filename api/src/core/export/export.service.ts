@@ -43,7 +43,14 @@ export class ExportService {
         if (!fs.existsSync(exportsFolder)) {
             fs.mkdirSync(exportsFolder, { recursive: true });
         }
-        const files = fs.readdirSync(exportsFolder);
+        const files = fs.readdirSync(exportsFolder)
+            .map(file => ({
+                name: file,
+                time: fs.statSync(path.join(exportsFolder, file)).mtime.getTime()
+            }))
+            .sort((a, b) => b.time - a.time)
+            .map(f => f.name);
+
         return {
             positions: files,
             basicPath: `exports/${count}/`
@@ -254,5 +261,116 @@ export class ExportService {
         XLSX.writeFile(wb, filePath);
 
         return fileName;
+    }
+
+    async exportSheet(sheetId: number) {
+        console.log(`Exporting sheet with ID ${sheetId}`);
+        const sheet = await this.sheetRepository.findOne({
+            where: { id: sheetId },
+            relations: ['count', 'signing_by']
+        });
+        console.log(`Found sheet:`, sheet);
+
+        if (!sheet) {
+            this.logger.warn(`Sheet with ID ${sheetId} not found during exportSheet.`);
+            throw new BadRequestException(['Nie znaleziono arkusza o podanym ID.']);
+        }
+
+        if (!sheet.active) {
+            this.logger.warn(`Attempt to export inactive sheet with ID ${sheetId}.`);
+            throw new BadRequestException(['Nie można eksportować nieaktywnego arkusza.']);
+        }
+
+        if (!sheet.signing_at || !sheet.signing_by?.id) {
+            this.logger.warn(`Attempt to export unsigned sheet with ID ${sheetId}.`);
+            throw new BadRequestException(['Nie można eksportować niepodpisanego arkusza.']);
+        }
+
+        const count = sheet.count;
+        const date = new Date();
+
+        const sheetPositions = await this.sheetPositionRepository.find({
+            where: {
+                sheet: { id: sheetId },
+                isDisabled: false
+            }
+        });
+
+        const imports = await this.importPositionRepository.find({
+            where: {
+                sheetPosition: {
+                    id: In(sheetPositions.map(sp => sp.id))
+                },
+                import: {
+                    isDisabled: false
+                },
+                isDisabled: false
+            },
+            relations: ['sheetPosition', 'import']
+        });
+        const grouped: Array<{ counted: number, expected: number, posId: number }> = [];
+
+        imports.forEach(ip => {
+            const group = grouped.find(g => g.posId === ip.sheetPosition.id);
+            if (group) {
+                const index = grouped.indexOf(group);
+                grouped[index] = {
+                    posId: ip.sheetPosition.id,
+                    counted: group.counted + (ip.quantity ?? 0),
+                    expected: group.expected + (ip.expectedQuantity ?? 0)
+                };
+            } else {
+                grouped.push({
+                    posId: ip.sheetPosition.id,
+                    counted: ip.quantity ?? 0,
+                    expected: ip.expectedQuantity ?? 0
+                });
+            }
+        });
+
+        sheetPositions.forEach(pos => {
+            if (!grouped.some(g => g.posId === pos.id)) {
+                grouped.push({
+                    posId: pos.id,
+                    counted: 0,
+                    expected: pos.expectedQuantity ?? 0
+                });
+            }
+        });
+
+        const pcm = await this.pc5MarketViewRepository.find({
+            where: {
+                TowId: In(sheetPositions.map(sp => sp.productId))
+            }
+        });
+
+        const csvRows = [
+            ['Kod', 'Ilość'],
+            ...grouped.map(g => {
+                const pos = sheetPositions.find(sp => sp.id === g.posId);
+                const product = pcm.find(p => p.TowId === pos?.productId);
+                return [product ? product.MainCode : 'BRAK', g.counted-g.expected];
+            })
+        ];
+
+        const basicPath = this.configService.get<string>('BASIC_PATH');
+        if (!basicPath)  throw new Error('BASIC_PATH is not defined');
+        const fullPath = path.join(basicPath,  `exports/${count.name}/temp/`);
+        if (!fs.existsSync(fullPath)) {
+            fs.mkdirSync(fullPath, { recursive: true });
+        }
+
+        const fileName = `export_${date.toISOString().replace(/[:.]/g, '-').replace('T', '_').replace('Z', '')}.xls`;
+        const filePath = path.join(fullPath, fileName);
+        this.logger.log(`Writing XLSX file to ${filePath}`);
+
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(csvRows);
+        
+        XLSX.utils.book_append_sheet(wb, ws, "Dane");
+        XLSX.writeFile(wb, filePath);
+
+        return `exports/${count.name}/temp/` + fileName;
     }
 }

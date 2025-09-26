@@ -403,6 +403,18 @@ const SheetCard = () => {
             });
     }
 
+    const exportSheet = async () => {
+        if (!sheetData?.basic?.id) return;
+        const path = await axiosInterface.get(`export/exportSheet/${sheetData?.basic?.id}`)
+        const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=${path.data}`
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = `${sheetData?.basic?.name}.xls`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     return (
         <Dialog open={isOpen} onOpenChange={closeModal}>
             <DialogContent className="sm:max-w-[1200px]">
@@ -833,6 +845,12 @@ const SheetCard = () => {
                                     onClick={closeSheet}
                                 >
                                     Zamknij arkusz i przeznacz do weryfikacji
+                                </Button>}
+                                {sheetData?.basic?.signing_at && <Button
+                                    className="w-full px-4 py-2 rounded transition shadow"
+                                    onClick={exportSheet}
+                                >
+                                    Eksportuj
                                 </Button>}
                             </div>
                         </TabsContent>

@@ -1,4 +1,4 @@
-import { Controller, Get, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Param, UnauthorizedException } from '@nestjs/common';
 import { ExportService } from './export.service';
 import { UserHeaders } from 'src/decorators/headers.decorator';
 import { UserHeadersType } from 'src/middleware/headers.middleware';
@@ -20,5 +20,10 @@ export class ExportController {
     if (!headers.count) throw new UnauthorizedException('Brak liczenia');
       
     return this.exportService.exportPart(headers.decodedJwt.usid, headers.count);
+  }
+
+  @Get('exportSheet/:id')
+  async exportSheet(@Param('id') id: number) {
+    return this.exportService.exportSheet(id);
   }
 }
