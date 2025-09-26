@@ -40,7 +40,9 @@ interface SignSheetRequest {
     onShelf: number;
 }
 
-const SignSheet = () => {
+const SignSheet = ({onClose}: {
+    onClose: () => void
+}) => {
     const { isSignSheetStoreOpen, sheetId, closeSignSheetStoreModal } = useSignSheetStore();
     const [sheetData, setSheetData] = useState<SheetPosition[] | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -76,6 +78,7 @@ const SignSheet = () => {
             toast.success("Arkusz podpisany pomyślnie.");
             closeSignSheetStoreModal();
             setSheetData(null);
+            onClose();
         } catch (error) {
             if (axios.isAxiosError(error) && error.response?.status === 400) {
                 toast.error("Nie można podpisać arkusza.", {
@@ -86,7 +89,7 @@ const SignSheet = () => {
             return;
         }
 
-    }, [sheetId, sheetData, closeSignSheetStoreModal]);
+    }, [sheetId, sheetData, closeSignSheetStoreModal, onClose]);
 
     const downloadSheetSumUp = useCallback(async () => {
         if (!sheetId) return;

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Import, ImportPosition, PC5MarketView, Sheet, SheetPosition } from 'src/database/mssql.entity';
+import { Count, Import, ImportPosition, PC5MarketView, Sheet, SheetPosition } from 'src/database/mssql.entity';
 import { PdfService } from 'src/modules/pdf/pdf.service';
 import { In, IsNull, Not, Raw, Repository } from 'typeorm';
 import { RaportsService } from '../raports/raports.service';
@@ -25,6 +25,9 @@ export class SheetService {
 
         @InjectRepository(ImportPosition)
         private readonly importPositionRepo: Repository<ImportPosition>,
+
+        @InjectRepository(Count)
+        private readonly countRepo: Repository<Count>,
 
         private readonly pdfService: PdfService,
         private readonly raportsService: RaportsService,
@@ -356,6 +359,18 @@ export class SheetService {
             throw new BadRequestException(['Nie znaleziono użytkownika o podanym ID.']);
         }
 
+        const count = await this.countRepo.findOne({ where: { id: countId, is_active: true } });
+        if (!count) {
+            this.logger.error(`Count not found: ${countId}`);
+            throw new BadRequestException(['Nie znaleziono liczenia o podanym ID.']);
+        }
+        if (!count.closed_at || count.closed_at < new Date()) {
+            this.logger.error(`Count is not active or already closed: ${countId}`);
+            throw new BadRequestException(['Liczenie jest nieaktywne lub zostało już zamknięte.']);
+        }
+
+        const isFinal: boolean = !!(count.final_at && count.final_at < new Date())
+
         const pass: Array<PC5MarketView> = []
         const notActive: Array<PC5MarketView> = []
         const used: Array<any> = []
@@ -418,7 +433,7 @@ export class SheetService {
             const newSheet = this.sheetRepo.create({
                 temp: true,
                 count: { id: countId },
-                mainCount: true,
+                mainCount: isFinal,
                 active: true,
                 name: `Temporary Sheet - ${sheetCount + 1}`,
                 comment: '',

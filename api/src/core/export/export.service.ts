@@ -76,6 +76,8 @@ export class ExportService {
                     active: true,
                     signing_at: Not(IsNull()),
                     signing_by: Not(IsNull()),
+                    temp: false,
+                    mainCount: true,
                 }
             },
             relations: ['sheet']

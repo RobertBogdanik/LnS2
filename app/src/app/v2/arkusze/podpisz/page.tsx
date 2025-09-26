@@ -32,7 +32,7 @@ const SignPage = () => {
 
     return (
         <div className="p-4 container mx-auto">
-            <SignSheet />
+            <SignSheet onClose={loadData} />
             <h1 className="text-2xl font-bold mb-4">Arkusze do podpisania</h1>
             {loading ? (
                 <p>Ładowanie...</p>
