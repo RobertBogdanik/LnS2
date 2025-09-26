@@ -40,7 +40,8 @@ export class SheetService {
             },
             where: {
                 count: { id: count },
-            }
+            },
+            relations: ['author']
         });
 
         let filteredSheets = allSheets;
@@ -67,7 +68,7 @@ export class SheetService {
         this.logger.log(`Sheets after query filtering: ${filteredSheets.length}`);
 
         // Apply padding and limit
-        const pagedSheets = filteredSheets.slice(padding, padding + limit);
+        const pagedSheets = filteredSheets.slice(padding, padding + limit).map(sheet => ({...sheet, author: sheet.author.username}));
 
         this.logger.log(`Returning sheets from ${padding} to ${padding + limit}, total: ${pagedSheets.length}`);
 

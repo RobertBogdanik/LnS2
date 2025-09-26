@@ -51,7 +51,7 @@ const ArkuszPage = () => {
         temp?: boolean;
         mainCount?: boolean;
         created_at?: string | null;
-        // Add other fields as needed
+        author?: string;
     };
 
     const [data, setData] = useState<Sheet[]>([])
@@ -262,7 +262,8 @@ const ArkuszPage = () => {
                 <TableHeader>
                     <TableRow>
                         <TableHead className="w-16">ID</TableHead>
-                        <TableHead className="w-fdull smax-w-none">Nazwa</TableHead>
+                        <TableHead className="">Nazwa</TableHead>
+                        <TableHead className="">Autor</TableHead>
                         <TableHead className="w-40">Status</TableHead>
                         <TableHead className="w-40">Statyczny</TableHead>
                         <TableHead className="w-40">Ostateczny</TableHead>
@@ -276,6 +277,7 @@ const ArkuszPage = () => {
                         <TableRow key={index} className="hover:bg-muted/50">
                             <TableCell>{el.id}</TableCell>
                             <TableCell>{el.name}</TableCell>
+                            <TableCell>{el.author}</TableCell>
                             <TableCell>
                                 {el.removed_at ? (
                                     <Badge className="bg-red-500 text-white">Usunięty</Badge>
