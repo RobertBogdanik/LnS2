@@ -94,17 +94,16 @@ const SignSheet = ({onClose}: {
 
     }, [sheetId, sheetData, closeSignSheetStoreModal, onClose]);
 
-    const downloadSheetSumUp = useCallback(async () => {
+    const printSheetSumUp = useCallback(async () => {
         if (!sheetId) return;
         try {
             const path = await axiosInterface.get(`pdf/sheet/${sheetId}/dynsumup`).then(res => res.data)
-            const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=${path}`;
-            const link = document.createElement('a');
-            link.href = fileUrl;
-            link.download = `arkusz_${sheetId}_dynsumup.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const printer = localStorage.getItem("printer");
+            
+            const res = await axiosInterface.get(`raports/print?pathToPdf=${path}&printer=${printer}`).then(res => res.data)
+
+            if(res.success) toast.success(res.message)
+            else toast.error(res.message)
         } catch (error) {
             if (axios.isAxiosError(error) && error.response?.status === 400) {
                 toast.error("Nie można pobrać podsumowania.", {
@@ -133,6 +132,7 @@ const SignSheet = ({onClose}: {
             toast.success("Arkusz podpisany pomyślnie.");
             closeSignSheetStoreModal();
             setSheetData(null);
+            onClose();
         } catch (error) {
             if (axios.isAxiosError(error) && error.response?.status === 400) {
                 toast.error("Nie można podpisać arkusza.", {
@@ -145,13 +145,12 @@ const SignSheet = ({onClose}: {
 
         try {
             const path = await axiosInterface.get(`pdf/sheet/${sheetId}/podkladka`).then(res => res.data)
-            const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=${path}`;
-            const link = document.createElement('a');
-            link.href = fileUrl;
-            link.download = `arkusz_${sheetId}_podkladka.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const printer = localStorage.getItem("printer");
+            
+            const res = await axiosInterface.get(`raports/print?pathToPdf=${path}&printer=${printer}`).then(res => res.data)
+
+            if(res.success) toast.success(res.message)
+            else toast.error(res.message)
         } catch (error) {
             if (axios.isAxiosError(error) && error.response?.status === 400) {
                 toast.error("Nie można pobrać podsumowania.", {
@@ -175,9 +174,9 @@ const SignSheet = ({onClose}: {
                         <span>Podpisz arkusz {sheetId}</span>
                         <Button
                             className="p-5"
-                            onClick={downloadSheetSumUp}
+                            onClick={printSheetSumUp}
                         >
-                            Pobierz podsumowanie
+                            Drukuj podsumowanie
                         </Button>
                     </DialogTitle>
                 </DialogHeader>
@@ -310,12 +309,6 @@ const SignSheet = ({onClose}: {
 
                                             onChange={(e) => {
                                                 const value = e.target.value.replaceAll(",", ".");
-                                                // const dotIndex = value.indexOf(".");
-                                                // const sanitizedValue_temp =
-                                                // dotIndex === -1
-                                                //     ? value
-                                                //     : value.slice(0, dotIndex + 1) + value.slice(dotIndex + 1).replaceAll(".", "")
-                                                // const sanitizedValue = sanitizedValue_temp.substring(sanitizedValue_temp.indexOf('-'));
                                                 const sanitizedValue = value.replaceAll(',', '.')
                                                 const num = Number(sanitizedValue);
                                                 const isDot = sanitizedValue.indexOf('.') !== -1;
@@ -411,7 +404,7 @@ const SignSheet = ({onClose}: {
                                         className="w-full p-5 mb-3"
                                         disabled={sheetData?.some((pos) => isNaN(Number(pos.onShelf)) || isNaN(Number(pos.newDelta)) || pos.onShelf < 0) || sheetData?.some((pos) => isNaN(Number(pos.newDelta)))}
                                         onClick={signSheetAndDownload}>
-                                        Podpisz arkusz i pobierz podkładka
+                                        Podpisz arkusz i drukuj podkładkę
                                     </Button>
                                 </TableCell>
                             </TableRow>
