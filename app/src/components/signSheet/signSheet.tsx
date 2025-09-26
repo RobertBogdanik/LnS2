@@ -29,7 +29,7 @@ interface SheetPosition {
     deltaValue: number;
     onPcMarket: number;
     onShelf: number;
-    newDelta: number;
+    newDelta: string;
     RetailPrice: number;
 }
 
@@ -169,7 +169,6 @@ const SignSheet = () => {
                         <span>Podpisz arkusz {sheetId}</span>
                         <Button
                             className="p-5"
-                            disabled={sheetData?.some((pos) => isNaN(Number(pos.onShelf)) || isNaN(Number(pos.newDelta)) || pos.onShelf < 0) || sheetData?.some((pos) => isNaN(Number(pos.newDelta)))}
                             onClick={downloadSheetSumUp}
                         >
                             Pobierz podsumowanie
@@ -266,7 +265,7 @@ const SignSheet = () => {
                                                             ? {
                                                                 ...p,
                                                                 onShelf: Number(sanitizedValue || 0),
-                                                                newDelta: Number((num - Number(p.onPcMarket)).toFixed(3))
+                                                                newDelta: `${Number((num - Number(p.onPcMarket)).toFixed(3))}`
                                                             }
                                                             : p
                                                     ) || null
@@ -298,47 +297,99 @@ const SignSheet = () => {
                                         <Input
                                             type="text"
                                             className={`w-30 ${isNaN(Number(position.newDelta)) ? "border-red-600 bg-red-100" : ""}`}
-                                            defaultValue={Number(position.newDelta || 0).toFixed(3)}
+                                            value={position.newDelta}
                                             onFocus={e => {
                                                 e.target.select();
                                             }}
-                                            onChange={e => {
+                                            // onChange={e => {
+                                            //     const value = e.target.value.replaceAll(",", ".");
+                                            //     const dotIndex = value.indexOf(".");
+                                            //     const sanitizedValue_temp =
+                                            //         dotIndex === -1
+                                            //             ? value
+                                            //             : value.slice(0, dotIndex + 1) + value.slice(dotIndex + 1).replaceAll(".", "");
+                                            //     const sanitizedValue = sanitizedValue_temp.startsWith('-')
+                                            //         ? '-' + sanitizedValue_temp.replace(/^-/, '')
+                                            //         : sanitizedValue_temp;
+                                            //     const num = Number(sanitizedValue);
+
+                                                // setSheetData((prev) =>
+                                                //     prev?.map((p) =>
+                                                //         p.id === position.id
+                                                //             ? {
+                                                //                 ...p,
+                                                //                 newDelta: Number(Number(sanitizedValue || 0).toFixed(2)),
+                                                //                 onShelf: !isNaN(num)
+                                                //                     ? Number((num + Number(p.onPcMarket)).toFixed(3))
+                                                //                     : Number((Number(p.onPcMarket)).toFixed(3))
+                                                //             }
+                                                //             : p
+                                                //     ) || null
+                                                // );
+                                            // }}
+                                            // onBlur={() => {
+                                            //     setSheetData((prev) =>
+                                            //         prev?.map((p) =>
+                                            //             p.id === position.id
+                                            //                 ? {
+                                            //                     ...p,
+                                            //                     newDelta: Number((Number(p.onShelf) - Number(p.onPcMarket)).toFixed(2))
+                                            //                 }
+                                            //                 : p
+                                            //         ) || null
+                                            //     );
+                                            // }}
+
+                                            onChange={(e) => {
                                                 const value = e.target.value.replaceAll(",", ".");
                                                 const dotIndex = value.indexOf(".");
                                                 const sanitizedValue_temp =
-                                                    dotIndex === -1
-                                                        ? value
-                                                        : value.slice(0, dotIndex + 1) + value.slice(dotIndex + 1).replaceAll(".", "");
-                                                const sanitizedValue = sanitizedValue_temp.startsWith('-')
-                                                    ? '-' + sanitizedValue_temp.replace(/^-/, '')
-                                                    : sanitizedValue_temp;
+                                                dotIndex === -1
+                                                    ? value
+                                                    : value.slice(0, dotIndex + 1) + value.slice(dotIndex + 1).replaceAll(".", "")
+                                                const sanitizedValue = sanitizedValue_temp.substring(sanitizedValue_temp.indexOf('-'));
                                                 const num = Number(sanitizedValue);
 
-                                                setSheetData((prev) =>
-                                                    prev?.map((p) =>
-                                                        p.id === position.id
-                                                            ? {
-                                                                ...p,
-                                                                newDelta: Number(Number(sanitizedValue || 0).toFixed(2)),
-                                                                onShelf: !isNaN(num)
-                                                                    ? Number((num + Number(p.onPcMarket)).toFixed(3))
-                                                                    : Number((Number(p.onPcMarket)).toFixed(3))
-                                                            }
-                                                            : p
-                                                    ) || null
-                                                );
+                                                if (!isNaN(num)) {
+                                                    setSheetData((prev) =>
+                                                        prev?.map((p) =>
+                                                            p.id === position.id
+                                                                ? {
+                                                                    ...p,
+                                                                    newDelta: `${Number(Number(sanitizedValue || 0).toFixed(2))}`,
+                                                                    onShelf: !isNaN(num)
+                                                                        ? Number((num + Number(p.onPcMarket)).toFixed(3))
+                                                                        : Number((Number(p.onPcMarket)).toFixed(3))
+                                                                }
+                                                                : p
+                                                        ) || null
+                                                    );
+                                                } else {
+                                                    setSheetData((prev) =>
+                                                        prev?.map((p) =>
+                                                            p.id === position.id
+                                                                ? {
+                                                                    ...p,
+                                                                    newDelta: sanitizedValue,
+                                                                    // onShelf: !isNaN(num)
+                                                                    //     ? Number((num + Number(p.onPcMarket)).toFixed(3))
+                                                                    //     : Number((Number(p.onPcMarket)).toFixed(3))
+                                                                }
+                                                                : p
+                                                        ) || null
+                                                    );
+                                                // setQuantities({
+                                                //     ...quantities,
+                                                //     delta: sanitizedValue,
+                                                //     shelf: Number((productCard.quantity.pcMarket).toFixed(3))
+                                                // });
+                                                }
                                             }}
                                             onBlur={() => {
-                                                setSheetData((prev) =>
-                                                    prev?.map((p) =>
-                                                        p.id === position.id
-                                                            ? {
-                                                                ...p,
-                                                                newDelta: Number((Number(p.onShelf) - Number(p.onPcMarket)).toFixed(2))
-                                                            }
-                                                            : p
-                                                    ) || null
-                                                );
+                                                // setQuantities(q => ({
+                                                //     ...q,
+                                                //     delta: Number((Number(q.shelf) - productCard.quantity.pcMarket).toFixed(3))
+                                                // }));
                                             }}
                                             step="any"
                                         />
