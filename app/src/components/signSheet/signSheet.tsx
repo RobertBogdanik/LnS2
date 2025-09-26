@@ -310,21 +310,24 @@ const SignSheet = ({onClose}: {
 
                                             onChange={(e) => {
                                                 const value = e.target.value.replaceAll(",", ".");
-                                                const dotIndex = value.indexOf(".");
-                                                const sanitizedValue_temp =
-                                                dotIndex === -1
-                                                    ? value
-                                                    : value.slice(0, dotIndex + 1) + value.slice(dotIndex + 1).replaceAll(".", "")
-                                                const sanitizedValue = sanitizedValue_temp.substring(sanitizedValue_temp.indexOf('-'));
+                                                // const dotIndex = value.indexOf(".");
+                                                // const sanitizedValue_temp =
+                                                // dotIndex === -1
+                                                //     ? value
+                                                //     : value.slice(0, dotIndex + 1) + value.slice(dotIndex + 1).replaceAll(".", "")
+                                                // const sanitizedValue = sanitizedValue_temp.substring(sanitizedValue_temp.indexOf('-'));
+                                                const sanitizedValue = value.replaceAll(',', '.')
                                                 const num = Number(sanitizedValue);
+                                                const isDot = sanitizedValue.indexOf('.') !== -1;
+                                                const isDotAtEnd = sanitizedValue.indexOf('.') === sanitizedValue.length - 1;
 
-                                                if (!isNaN(num)) {
+                                                if (!isNaN(num) && (!isDot || !isDotAtEnd)) {
                                                     setSheetData((prev) =>
                                                         prev?.map((p) =>
                                                             p.id === position.id
                                                                 ? {
                                                                     ...p,
-                                                                    newDelta: `${Number(Number(sanitizedValue || 0).toFixed(2))}`,
+                                                                    newDelta: `${Number(Number(sanitizedValue || 0).toFixed(3))}`,
                                                                     onShelf: !isNaN(num)
                                                                         ? Number((num + Number(p.onPcMarket)).toFixed(3))
                                                                         : Number((Number(p.onPcMarket)).toFixed(3))
