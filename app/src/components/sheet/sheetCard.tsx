@@ -26,6 +26,7 @@ import { useProductCardStore } from "@/context/productCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { toast } from "sonner";
 import axios from "axios";
+import { FiPrinter } from "react-icons/fi";
 
 const SheetCard = () => {
     const { isOpen, sheetId, closeModal, setLastChange } = useSheetCardStore();
@@ -120,6 +121,32 @@ const SheetCard = () => {
             }
     }, [sheetData, sheetId]);
 
+    const handlePrintPDF = useCallback(() => {
+        if (!sheetId) return;
+        
+        const download = async () => {
+            try {
+                
+                const printer = localStorage.getItem("printer");
+                
+                const res = await axiosInterface.get(`raports/print?pathToPdf=sheets/basic/${sheetData?.basic?.name}.pdf&printer=${printer}`).then(res => res.data)
+
+                if(res.success) toast.success(res.message)
+                else toast.error(res.message)
+            } catch (error) {
+                if (axios.isAxiosError(error) && error.response?.status === 400) {
+                    toast.error("Nie można pobrać podsumowania.", {
+                        description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
+                    });
+                    return;
+                }
+                return;
+            }
+        }
+
+        download()
+    }, [sheetData, sheetId]);
+
     const handleDownloadKreski = useCallback(() => {
         if (!sheetId) return;
 
@@ -134,6 +161,32 @@ const SheetCard = () => {
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+            } catch (error) {
+                if (axios.isAxiosError(error) && error.response?.status === 400) {
+                    toast.error("Nie można pobrać podsumowania.", {
+                        description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
+                    });
+                    return;
+                }
+                return;
+            }
+        }
+
+        download();
+    }, [sheetData, sheetId]);
+
+    const handlePrintKreski = useCallback(() => {
+        if (!sheetId) return;
+
+        const download = async () => {
+            try {
+                const path = await axiosInterface.get(`pdf/sheet/${sheetData?.basic?.id}/kreski`).then(res => res.data)
+                const printer = localStorage.getItem("printer");
+                
+                const res = await axiosInterface.get(`raports/print?pathToPdf=${path}&printer=${printer}`).then(res => res.data)
+
+                if(res.success) toast.success(res.message)
+                else toast.error(res.message)
             } catch (error) {
                 if (axios.isAxiosError(error) && error.response?.status === 400) {
                     toast.error("Nie można pobrać podsumowania.", {
@@ -176,6 +229,32 @@ const SheetCard = () => {
         download();
     }, [sheetData, sheetId]);
 
+    const handlePrintDynSumUp= useCallback(() => {
+        if (!sheetId) return;
+
+        const download = async () => {
+            try {
+                const path = await axiosInterface.get(`pdf/sheet/${sheetData?.basic?.id}/dynsumup`).then(res => res.data)
+                const printer = localStorage.getItem("printer");
+                
+                const res = await axiosInterface.get(`raports/print?pathToPdf=${path}&printer=${printer}`).then(res => res.data)
+
+                if(res.success) toast.success(res.message)
+                else toast.error(res.message)
+            } catch (error) {
+                if (axios.isAxiosError(error) && error.response?.status === 400) {
+                    toast.error("Nie można pobrać podsumowania.", {
+                        description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
+                    });
+                    return;
+                }
+                return;
+            }
+        }
+
+        download();
+    }, [sheetData, sheetId]);
+
     const handleDownloadDynamic = useCallback(() => {
         if (!sheetId) return;
             const download = async () => {
@@ -188,6 +267,32 @@ const SheetCard = () => {
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+            } catch (error) {
+                if (axios.isAxiosError(error) && error.response?.status === 400) {
+                    toast.error("Nie można pobrać podsumowania.", {
+                        description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
+                    });
+                    return;
+                }
+                return;
+            }
+        }
+
+        download();
+    }, [sheetData, sheetId]);
+
+    const handlePrintDynamic = useCallback(() => {
+        if (!sheetId) return;
+            const download = async () => {
+            if (!sheetId) return;
+            try{
+                
+                const printer = localStorage.getItem("printer");
+                
+                const res = await axiosInterface.get(`raports/print?pathToPdf=sheets/dynamic/${sheetData?.basic?.name}_dynamic.pdf&printer=${printer}`).then(res => res.data)
+
+                if(res.success) toast.success(res.message)
+                else toast.error(res.message)
             } catch (error) {
                 if (axios.isAxiosError(error) && error.response?.status === 400) {
                     toast.error("Nie można pobrać podsumowania.", {
@@ -219,6 +324,32 @@ const SheetCard = () => {
                 if (axios.isAxiosError(error) && error.response?.status === 400) {
                     toast.error("Nie można pobrać podsumowania.", {
                         description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
+                    });
+                    return;
+                }
+                return;
+            }
+        }
+
+        download();
+    }, [sheetData, sheetId]);
+
+    const handlePrintPodladka = useCallback(() => {
+        if (!sheetId) return;
+
+        const download = async () => {
+            try {
+                const path = await axiosInterface.get(`pdf/sheet/${sheetData?.basic?.id}/podkladka`).then(res => res.data)
+                const printer = localStorage.getItem("printer");
+                
+                const res = await axiosInterface.get(`raports/print?pathToPdf=${path}&printer=${printer}`).then(res => res.data)
+
+                if(res.success) toast.success(res.message)
+                else toast.error(res.message)
+            } catch (error) {
+                if (axios.isAxiosError(error) && error.response?.status === 400) {
+                    toast.error("Nie można wydrukować podsumowania.", {
+                        description: error.response?.data?.message || "Wystąpił błąd podczas drukowania podsumowania."
                     });
                     return;
                 }
@@ -595,42 +726,103 @@ const SheetCard = () => {
                         <TabsContent value="downloads">
                             {!sheetData?.basic?.temp &&<div className="flex flex-col gap-4 mt-4">
                                 {!sheetData?.basic?.dynamic && <>
-                                    <Button
-                                        className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition shadow"
-                                        onClick={handleDownloadPDF}
-                                    >
-                                        <IoMdDownload className="w-5 h-5" />
-                                        Pobierz PDF
-                                    </Button>
-                                    <Button
-                                        className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition shadow"
-                                        onClick={handleDownloadKreski}
-                                    >
-                                        <IoMdDownload className="w-5 h-5" />
-                                        Pobierz kreski
-                                    </Button>
+                                    <div className="flex gap-4 items-start">
+                                        <Button
+                                            onClick={handlePrintPDF}
+                                            className="flex-1"
+                                        >
+                                            <FiPrinter className="w-5 h-5 mr-2" />
+                                            Drukuj PDF
+                                        </Button>
+                                        
+                                        <Button
+                                            onClick={handleDownloadPDF}
+                                            variant="outline"
+                                            className="whitespace-nowrap min-w-[210px]"
+                                        >
+                                            <IoMdDownload className="w-5 h-5 mr-2" />
+                                            Pobierz PDF
+                                        </Button>
+                                    </div>
+                                    <div className="flex gap-4 items-start">
+                                        <Button
+                                            onClick={handlePrintKreski}
+                                            className="flex-1"
+                                        >
+                                            <FiPrinter className="w-5 h-5 mr-2" />
+                                            Drukuj kreski
+                                        </Button>
+                                        
+                                        <Button
+                                            onClick={handleDownloadKreski}
+                                            variant="outline"
+                                            className="whitespace-nowrap min-w-[210px]"
+                                        >
+                                            <IoMdDownload className="w-5 h-5 mr-2" />
+                                            Pobierz kreski
+                                        </Button>
+                                    </div>
                                 </>}
-                                {sheetData?.basic?.dynamic && <Button
-                                    className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition shadow"
-                                    onClick={handleDownloadDynamic}
-                                >
-                                    <IoMdDownload className="w-5 h-5" />
-                                    Pobierz potwierdzenie dynamicznego
-                                </Button>}
-                                {sheetData?.basic?.closed_at && <Button
-                                    className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition shadow"
-                                    onClick={handleDownloadDynSumUp}
-                                >
-                                    <IoMdDownload className="w-5 h-5" />
-                                    Pobierz podsumowanie
-                                </Button>}
-                                {sheetData?.basic?.signing_at && <Button
-                                    className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition shadow"
-                                    onClick={handleDownloadPodladka}
-                                >
-                                    <IoMdDownload className="w-5 h-5" />
-                                    Pobierz podkładka
-                                </Button>}
+                                {sheetData?.basic?.dynamic && (
+                                    <div className="flex gap-4 items-start">
+                                        <Button
+                                            onClick={handlePrintDynamic}
+                                            className="flex-1"
+                                        >
+                                            <FiPrinter className="w-5 h-5 mr-2" />
+                                            Drukuj potwierdzenie dynamicznego
+                                        </Button>
+                                        
+                                        <Button
+                                            onClick={handleDownloadDynamic}
+                                            variant="outline"
+                                            className="whitespace-nowrap"
+                                        >
+                                            <IoMdDownload className="w-5 h-5 mr-2" />
+                                            Pobierz potwierdzenie dynamicznego
+                                        </Button>
+                                    </div>
+                                )}
+                                {sheetData?.basic?.closed_at && (
+                                    <div className="flex gap-4 items-start">
+                                        <Button
+                                            onClick={handlePrintDynSumUp}
+                                            className="flex-1"
+                                        >
+                                            <FiPrinter className="w-5 h-5 mr-2" />
+                                            Drukuj podsumowanie
+                                        </Button>
+                                        
+                                        <Button
+                                            onClick={handleDownloadDynSumUp}
+                                            variant="outline"
+                                            className="whitespace-nowrap min-w-[210px]"
+                                        >
+                                            <IoMdDownload className="w-5 h-5 mr-2" />
+                                            Pobierz podsumowanie
+                                        </Button>
+                                    </div>
+                                )}
+                                {sheetData?.basic?.signing_at && (
+                                    <div className="flex gap-4 items-start">
+                                        <Button
+                                        onClick={handlePrintPodladka}
+                                        className="flex-1"
+                                        >
+                                            <FiPrinter className="w-5 h-5 mr-2" />
+                                            Drukuj podkładka
+                                        </Button>
+                                        
+                                        <Button
+                                            onClick={handleDownloadPodladka}
+                                            variant="outline"
+                                            className="whitespace-nowrap min-w-[210px]"
+                                        >
+                                            <IoMdDownload className="w-5 h-5 mr-2" />
+                                            Pobierz podkładka
+                                        </Button>
+                                    </div>
+                                )}
                             </div>}
                         </TabsContent>
                         <TabsContent value="service">
