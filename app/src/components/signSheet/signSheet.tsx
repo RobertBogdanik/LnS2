@@ -54,7 +54,7 @@ const SignSheet = ({onClose}: {
         const res = await axiosInterface.get(`sheet/toSign/${id}`);
         setSheetData(res.data.map((pos: SheetPosition) => ({
             ...pos,
-            newDelta: Number(pos.newDelta).toFixed(3)
+            newDelta: Number(pos.newDelta).toFixed(3).toString()
         })));
         setIsLoading(false);
     }, []);
