@@ -13,6 +13,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { RequestAwareLogger } from './config/request-aware.logger';
 import { RequestIdMiddleware } from './middleware/request-id.middleware';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -41,11 +42,12 @@ import { RequestIdMiddleware } from './middleware/request-id.middleware';
     CoreModule,
     SysConfigModule,
     PdfModule,
-    CronModule,
+    ScheduleModule.forRoot(),
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'defaultSecretKey',
       signOptions: { expiresIn: '365d' },
     }),
+    CronModule,
   ],
   controllers: [],
   providers: [
@@ -54,7 +56,7 @@ import { RequestIdMiddleware } from './middleware/request-id.middleware';
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
-    },
+    }
   ],
 })
 export class AppModule {

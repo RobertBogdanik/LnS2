@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { SyncModule } from './sync/sync.module';
 import { AuthModule } from './auth/auth.module';
 import { FilesModule } from './files/files.module';
 import { RaportsModule } from './raports/raports.module';
@@ -10,6 +9,6 @@ import { SettingsModule } from './settings/settings.module';
 import { ExportModule } from './export/export.module';
 
 @Module({
-  imports: [SyncModule, AuthModule, FilesModule, RaportsModule, SheetModule, ImportModule, ProductsModule, SettingsModule, ExportModule]
+  imports: [AuthModule, FilesModule, RaportsModule, SheetModule, ImportModule, ProductsModule, SettingsModule, ExportModule]
 })
 export class CoreModule {}
