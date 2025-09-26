@@ -120,6 +120,7 @@ export default function ProductTable() {
         setSelectedIndex((prev) => (prev + 1 < products.length ? prev + 1 : -1));
       } else if (event.key === "Enter") {
         event.preventDefault();
+        if(document.activeElement?.tagName === "INPUT") return;
         openModal();
       } else if (event.key === "F2") {
         event.preventDefault();

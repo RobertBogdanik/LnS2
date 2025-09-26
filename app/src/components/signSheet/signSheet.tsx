@@ -301,44 +301,6 @@ const SignSheet = () => {
                                             onFocus={e => {
                                                 e.target.select();
                                             }}
-                                            // onChange={e => {
-                                            //     const value = e.target.value.replaceAll(",", ".");
-                                            //     const dotIndex = value.indexOf(".");
-                                            //     const sanitizedValue_temp =
-                                            //         dotIndex === -1
-                                            //             ? value
-                                            //             : value.slice(0, dotIndex + 1) + value.slice(dotIndex + 1).replaceAll(".", "");
-                                            //     const sanitizedValue = sanitizedValue_temp.startsWith('-')
-                                            //         ? '-' + sanitizedValue_temp.replace(/^-/, '')
-                                            //         : sanitizedValue_temp;
-                                            //     const num = Number(sanitizedValue);
-
-                                                // setSheetData((prev) =>
-                                                //     prev?.map((p) =>
-                                                //         p.id === position.id
-                                                //             ? {
-                                                //                 ...p,
-                                                //                 newDelta: Number(Number(sanitizedValue || 0).toFixed(2)),
-                                                //                 onShelf: !isNaN(num)
-                                                //                     ? Number((num + Number(p.onPcMarket)).toFixed(3))
-                                                //                     : Number((Number(p.onPcMarket)).toFixed(3))
-                                                //             }
-                                                //             : p
-                                                //     ) || null
-                                                // );
-                                            // }}
-                                            // onBlur={() => {
-                                            //     setSheetData((prev) =>
-                                            //         prev?.map((p) =>
-                                            //             p.id === position.id
-                                            //                 ? {
-                                            //                     ...p,
-                                            //                     newDelta: Number((Number(p.onShelf) - Number(p.onPcMarket)).toFixed(2))
-                                            //                 }
-                                            //                 : p
-                                            //         ) || null
-                                            //     );
-                                            // }}
 
                                             onChange={(e) => {
                                                 const value = e.target.value.replaceAll(",", ".");
@@ -371,25 +333,11 @@ const SignSheet = () => {
                                                                 ? {
                                                                     ...p,
                                                                     newDelta: sanitizedValue,
-                                                                    // onShelf: !isNaN(num)
-                                                                    //     ? Number((num + Number(p.onPcMarket)).toFixed(3))
-                                                                    //     : Number((Number(p.onPcMarket)).toFixed(3))
                                                                 }
                                                                 : p
                                                         ) || null
                                                     );
-                                                // setQuantities({
-                                                //     ...quantities,
-                                                //     delta: sanitizedValue,
-                                                //     shelf: Number((productCard.quantity.pcMarket).toFixed(3))
-                                                // });
                                                 }
-                                            }}
-                                            onBlur={() => {
-                                                // setQuantities(q => ({
-                                                //     ...q,
-                                                //     delta: Number((Number(q.shelf) - productCard.quantity.pcMarket).toFixed(3))
-                                                // }));
                                             }}
                                             step="any"
                                         />
