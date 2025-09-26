@@ -7,6 +7,7 @@ import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
 import { WinstonLogger } from 'src/config/winston.logger';
 import { AuthService } from '../auth/auth.service';
+import * as XLSX from 'xlsx';
 
 @Injectable()
 export class ExportService {
@@ -170,12 +171,9 @@ export class ExportService {
         this.logger.log(`Final products to export: ${finalProducts.length}`);
 
         const csvRows = [
-            ['MainCode', 'Counted'],
             ...finalProducts.map(p => [p.MainCode, p.counted])
         ];
-
-        const csvContent = csvRows.map(row => row.join(';')).join('\n');
-        this.logger.log('CSV content generated');
+        this.logger.log('XLSX rows generated');
 
         const date = new Date();
         await this.importRepository.manager.transaction(async transactionalEntityManager => {
@@ -244,11 +242,16 @@ export class ExportService {
             fs.mkdirSync(fullPath, { recursive: true });
         }
 
-        const fileName = `export_${date.toISOString().replace(/[:.]/g, '-').replace('T', '_').replace('Z', '')}.csv`;
+        const fileName = `export_${date.toISOString().replace(/[:.]/g, '-').replace('T', '_').replace('Z', '')}.xls`;
         const filePath = path.join(fullPath, fileName);
-        this.logger.log(`Writing CSV file to ${filePath}`);
+        this.logger.log(`Writing XLSX file to ${filePath}`);
 
-        fs.writeFileSync(filePath, csvContent, 'utf8');
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(csvRows);
+        
+        XLSX.utils.book_append_sheet(wb, ws, "Dane");
+        XLSX.writeFile(wb, filePath);
 
         return fileName;
     }
