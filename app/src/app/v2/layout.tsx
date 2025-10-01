@@ -73,7 +73,7 @@ export default function DashboardLayout({
             toast.error("Nieprawidłowy token dostępu");
             logout();
         }
-    }, []);
+    }, [setUser]);
 
     return (
         <div className="flex flex-col min-h-screen">

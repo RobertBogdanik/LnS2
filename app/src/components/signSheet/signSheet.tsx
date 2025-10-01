@@ -160,7 +160,7 @@ const SignSheet = ({onClose}: {
             }
             return;
         }
-    }, [sheetId, sheetData, closeSignSheetStoreModal]);
+    }, [sheetId, sheetData, closeSignSheetStoreModal, onClose]);
 
     if (!sheetId) return null;
 

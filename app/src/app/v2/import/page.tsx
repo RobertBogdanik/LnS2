@@ -4,6 +4,12 @@ import React from "react";
 import Papa from 'papaparse';
 import axiosInterface from "@/config/axios";
 import { toast } from "sonner";
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const ImportPage = () => {
     type FileType = {
@@ -15,6 +21,7 @@ const ImportPage = () => {
     };
 
     const [files, setFiles] = React.useState<FileType[]>([]);
+    const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
     type SheetType = {
         name: string;
@@ -63,20 +70,41 @@ const ImportPage = () => {
     }
 
     const sheetSumUp = () => {
+        setIsLoading(true);
+        if (files.length === 0) {
+            toast.error('Brak plików do zaimportowania');
+            setIsLoading(false);
+            return;
+        }
         axiosInterface.post('/import', files)
             .then(response => {
+                setIsLoading(false);
                 toast.success('Import zakończony pomyślnie', {
                     description: response.data.message
                 });
             })
             .catch(error => {
+                setIsLoading(false);
                 toast.error('Błąd podczas importu', {
                     description: error.response?.data?.message || error.message,
                 });
             });
     }
 
-    return (
+    return (<>
+
+        <AlertDialog open={isLoading} onOpenChange={setIsLoading}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Importowanie danych</AlertDialogTitle>
+                    <div className="flex justify-center mt-3 h-5 space-x-2">
+                        <div className="w-3 h-5 rounded-full bg-primary animate-bounce"></div>
+                        <div className="w-3 h-5 rounded-full bg-primary animate-bounce [animation-delay:0.2s]"></div>
+                        <div className="w-3 h-5 rounded-full bg-primary animate-bounce [animation-delay:0.4s]"></div>
+                    </div>
+                </AlertDialogHeader>
+            </AlertDialogContent>
+        </AlertDialog>
         <main className="flex-1 p-6 bg-white">
             <div className="flex flex-col items-center justify-center h-full">
                 <div className="w-full container space-y-4">
@@ -134,6 +162,7 @@ const ImportPage = () => {
                 </div>
             </div>
         </main>
+    </>
     );
 };
 
