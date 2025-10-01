@@ -76,10 +76,12 @@ export default function DashboardLayout({
         }
     }, [setUser]);
 
-    const [stats, setStats] = useState<{ notActive: number; inCount: number; toCount: number }>({
+    const [stats, setStats] = useState<{ notActive: number; inCount: number; toCount: number, inCountAlt: number, toCountAlt: number }>({
         notActive: 0,
         inCount: 0,
-        toCount: 100
+        toCount: 100,
+        inCountAlt: 0,
+        toCountAlt: 0
     });
 
     useEffect(() => {
@@ -89,7 +91,9 @@ export default function DashboardLayout({
                 setStats({ 
                     notActive: (notActive / total) * 100, 
                     inCount: (inCount / total) * 100, 
-                    toCount: (toCount / total) * 100
+                    toCount: (toCount / total) * 100,
+                    inCountAlt: (inCount / (inCount + toCount)) * 100,
+                    toCountAlt: (toCount / (inCount + toCount)) * 100,
                  });
             })
             .catch(error => {
@@ -106,6 +110,12 @@ export default function DashboardLayout({
                     <div className={`bg-red-400`} style={{ width: `${stats.notActive}%` }} />
                     <div className={`bg-white`} style={{ width: `${stats.toCount}%` }} />
                     <div className={`bg-black`} style={{ width: `${stats.inCount}%` }} />
+                </div>
+            </div>
+            <div className="relative h-1 w-screen rounded overflow-hidden">
+                <div className="absolute inset-0 flex w-screen h-full">
+                    <div className={`bg-black`} style={{ width: `${stats.inCountAlt}%` }} />
+                    <div className={`bg-white`} style={{ width: `${stats.toCountAlt}%` }} />
                 </div>
             </div>
             <nav className="flex justify-between items-center border-b px-6 py-3 bg-white">
