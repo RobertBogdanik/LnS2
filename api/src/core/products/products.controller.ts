@@ -23,6 +23,13 @@ export class ProductsController {
     return this.productsService.searchProducts(q, aso, status, headers.decodedJwt.usid, headers.count, padding, limit);
   }
 
+  @Get("stats")
+  async getProductStats(@UserHeaders() headers: UserHeadersType) {
+    if (!headers.count) throw new UnauthorizedException('Brak liczeania');
+
+    return this.productsService.getStats(headers.count);
+  }
+  
   @Get('asos')
   async getAllUniqueAsos() {
     return this.productsService.getAllUniqueAsos();
@@ -42,4 +49,5 @@ export class ProductsController {
         
     return this.productsService.changeDelta(TowID, shelf, headers.decodedJwt.usid, headers.count);
   }
+
 }

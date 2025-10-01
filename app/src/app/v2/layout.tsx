@@ -13,9 +13,10 @@ import { usePathname } from "next/navigation";
 import SearchModal from "@/components/search/searchModal";
 import { useSearchModalStore } from "@/context/search";
 import { useUserStore } from "@/context/user";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import jwt from 'jsonwebtoken';
 import { toast } from "sonner";
+import axiosInterface from "@/config/axios";
 
 export default function DashboardLayout({
     children,
@@ -75,15 +76,36 @@ export default function DashboardLayout({
         }
     }, [setUser]);
 
+    const [stats, setStats] = useState<{ notActive: number; inCount: number; toCount: number }>({
+        notActive: 0,
+        inCount: 0,
+        toCount: 100
+    });
+
+    useEffect(() => {
+        axiosInterface.get('/products/stats')
+            .then(response => {
+                const { notActive, inCount, toCount, total } = response.data;
+                setStats({ 
+                    notActive: (notActive / total) * 100, 
+                    inCount: (inCount / total) * 100, 
+                    toCount: (toCount / total) * 100
+                 });
+            })
+            .catch(error => {
+                console.error("Błąd podczas pobierania statystyk produktów:", error);
+            });
+    }, []);
+    
     return (
         <div className="flex flex-col min-h-screen">
             <ProductCard />
             <SearchModal />
-            <div className="relative h-1 w-full rounded overflow-hidden">
-                <div className="absolute inset-0 flex w-full h-full">
-                    <div className="w-[30%] bg-red-400" />
-                    <div className="w-[10%] bg-white" />
-                    <div className="w-[60%] bg-black" />
+            <div className="relative h-1 w-screen rounded overflow-hidden">
+                <div className="absolute inset-0 flex w-screen h-full">
+                    <div className={`bg-red-400`} style={{ width: `${stats.notActive}%` }} />
+                    <div className={`bg-white`} style={{ width: `${stats.toCount}%` }} />
+                    <div className={`bg-black`} style={{ width: `${stats.inCount}%` }} />
                 </div>
             </div>
             <nav className="flex justify-between items-center border-b px-6 py-3 bg-white">

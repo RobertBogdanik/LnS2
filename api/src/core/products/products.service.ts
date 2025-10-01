@@ -160,6 +160,27 @@ export class ProductsService {
         };
     }
 
+    async getStats(count: number) {
+        const totalProducts = await this.pc5MarketViewRepository.count();
+        const notActiveProducts = await this.pc5MarketViewRepository.count({ where: { IsActive: false } });
+
+        const inCountProducts = await this.sheetPositionRepository.count({
+            where: {
+                sheet: { active: true, count: { id: count } },
+                isDisabled: false
+            },
+            select: ['productId']
+        });
+        const toCount = totalProducts - inCountProducts - notActiveProducts;
+
+        return {
+            total: totalProducts,
+            notActive: notActiveProducts,
+            inCount: inCountProducts,
+            toCount: toCount
+        };
+    }
+
     async getAllUniqueAsos() {
         const asos = await this.pc5MarketViewRepository.createQueryBuilder('pm')
             .select('DISTINCT pm.AsoName', 'AsoName')
