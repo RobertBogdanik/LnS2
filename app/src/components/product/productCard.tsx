@@ -43,6 +43,7 @@ const ProductCard = () => {
     sheet?: {
       id: number;
       name: string;
+      signing_at: string | null;
     };
     history: ProductCardHistoryEntry[];
   };
@@ -172,7 +173,7 @@ const ProductCard = () => {
                 </div>
               </div>}
             </div>
-            {productCard.isImported && <div className="col-span-3 flex flex-col gap-2">
+            {(productCard.isImported && productCard?.sheet?.signing_at) && <div className="col-span-3 flex flex-col gap-2">
               <hr className="col-span-3" />
               <Label>Edycja ręczna</Label>
               <div>
