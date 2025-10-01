@@ -744,7 +744,7 @@ const SheetCard = () => {
                                             className="flex-1"
                                         >
                                             <FiPrinter className="w-5 h-5 mr-2" />
-                                            Drukuj PDF
+                                            Drukuj arkusz
                                         </Button>
                                         
                                         <Button
@@ -753,7 +753,7 @@ const SheetCard = () => {
                                             className="whitespace-nowrap min-w-[210px]"
                                         >
                                             <IoMdDownload className="w-5 h-5 mr-2" />
-                                            Pobierz PDF
+                                            Pobierz arkusz
                                         </Button>
                                     </div>
                                     <div className="flex gap-4 items-start">
