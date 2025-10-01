@@ -120,7 +120,7 @@ const ImportPage = () => {
                                 id="file-upload"
                                 className="hidden"
                                 multiple={true}
-                                accept=".txt"
+                                accept=".piku"
                                 onChange={openCsv}
                             />
                             <label htmlFor="file-upload" className="flex flex-col items-center cursor-pointer">
