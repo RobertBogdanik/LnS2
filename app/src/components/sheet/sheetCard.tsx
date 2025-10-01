@@ -430,7 +430,7 @@ const SheetCard = () => {
                             <TabsTrigger value="details">Szczegóły</TabsTrigger>
                             <TabsTrigger value="products">Produkty</TabsTrigger>
                             <TabsTrigger value="imports">Importy</TabsTrigger>
-                            <TabsTrigger value="downloads">Pobieranie</TabsTrigger>
+                            <TabsTrigger value="downloads">Drukowanie/Pobieranie</TabsTrigger>
                             <TabsTrigger value="service">Operacje serwisowe</TabsTrigger>
                         </TabsList>
                         <TabsContent value="details">
