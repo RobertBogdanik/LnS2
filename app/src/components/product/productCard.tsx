@@ -167,7 +167,7 @@ const ProductCard = () => {
                 </div>
               </div>}
               {productCard.isImported && <div>
-                <Label>Delta</Label>
+                <Label>Różnica</Label>
                 <div>
                   <Input type="number" className="w-full bg-gray-100 text-gray-800" value={productCard.quantity.delta} disabled />
                 </div>
@@ -257,10 +257,10 @@ const ProductCard = () => {
                       }}
                       step="any"
                     />
-                    <Label className="whitespace-nowrap mt-1">Delta</Label>
+                    <Label className="whitespace-nowrap mt-1">Różnica</Label>
                   </div>
                   <div className="flex flex-col items-baseline w-full">
-                    <Button className="w-full" onClick={updateDelta} disabled={Number(quantities.shelf) < 0}>Zmień deltę</Button>
+                    <Button className="w-full" onClick={updateDelta} disabled={Number(quantities.shelf) < 0}>Zmień różnicę</Button>
                   </div>
                 </div>
               </div>

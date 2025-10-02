@@ -111,27 +111,27 @@ const SheetCard = () => {
             link.click();
             document.body.removeChild(link);
         } catch (error) {
-                if (axios.isAxiosError(error) && error.response?.status === 400) {
-                    toast.error("Nie można pobrać podsumowania.", {
-                        description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
-                    });
-                    return;
-                }
+            if (axios.isAxiosError(error) && error.response?.status === 400) {
+                toast.error("Nie można pobrać podsumowania.", {
+                    description: error.response?.data?.message || "Wystąpił błąd podczas pobierania podsumowania."
+                });
                 return;
             }
+            return;
+        }
     }, [sheetData, sheetId]);
 
     const handlePrintPDF = useCallback(() => {
         if (!sheetId) return;
-        
+
         const download = async () => {
             try {
-                
+
                 const printer = localStorage.getItem("printer");
-                
+
                 const res = await axiosInterface.get(`raports/print?pathToPdf=sheets/basic/${sheetData?.basic?.name}.pdf&printer=${printer}`).then(res => res.data)
 
-                if(res.success) toast.success(res.message)
+                if (res.success) toast.success(res.message)
                 else toast.error(res.message)
             } catch (error) {
                 if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -182,10 +182,10 @@ const SheetCard = () => {
             try {
                 const path = await axiosInterface.get(`pdf/sheet/${sheetData?.basic?.id}/kreski`).then(res => res.data)
                 const printer = localStorage.getItem("printer");
-                
+
                 const res = await axiosInterface.get(`raports/print?pathToPdf=${path}&printer=${printer}`).then(res => res.data)
 
-                if(res.success) toast.success(res.message)
+                if (res.success) toast.success(res.message)
                 else toast.error(res.message)
             } catch (error) {
                 if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -201,7 +201,7 @@ const SheetCard = () => {
         download();
     }, [sheetData, sheetId]);
 
-    const handleDownloadDynSumUp= useCallback(() => {
+    const handleDownloadDynSumUp = useCallback(() => {
         if (!sheetId) return;
 
         const download = async () => {
@@ -229,17 +229,17 @@ const SheetCard = () => {
         download();
     }, [sheetData, sheetId]);
 
-    const handlePrintDynSumUp= useCallback(() => {
+    const handlePrintDynSumUp = useCallback(() => {
         if (!sheetId) return;
 
         const download = async () => {
             try {
                 const path = await axiosInterface.get(`pdf/sheet/${sheetData?.basic?.id}/dynsumup`).then(res => res.data)
                 const printer = localStorage.getItem("printer");
-                
+
                 const res = await axiosInterface.get(`raports/print?pathToPdf=${path}&printer=${printer}`).then(res => res.data)
 
-                if(res.success) toast.success(res.message)
+                if (res.success) toast.success(res.message)
                 else toast.error(res.message)
             } catch (error) {
                 if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -257,9 +257,9 @@ const SheetCard = () => {
 
     const handleDownloadDynamic = useCallback(() => {
         if (!sheetId) return;
-            const download = async () => {
+        const download = async () => {
             if (!sheetId) return;
-            try{
+            try {
                 const fileUrl = `http://${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/files/download?path=sheets/dynamic/${sheetData?.basic?.name}_dynamic.pdf`;
                 const link = document.createElement('a');
                 link.href = fileUrl;
@@ -283,15 +283,15 @@ const SheetCard = () => {
 
     const handlePrintDynamic = useCallback(() => {
         if (!sheetId) return;
-            const download = async () => {
+        const download = async () => {
             if (!sheetId) return;
-            try{
-                
+            try {
+
                 const printer = localStorage.getItem("printer");
-                
+
                 const res = await axiosInterface.get(`raports/print?pathToPdf=sheets/dynamic/${sheetData?.basic?.name}_dynamic.pdf&printer=${printer}`).then(res => res.data)
 
-                if(res.success) toast.success(res.message)
+                if (res.success) toast.success(res.message)
                 else toast.error(res.message)
             } catch (error) {
                 if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -341,10 +341,10 @@ const SheetCard = () => {
             try {
                 const path = await axiosInterface.get(`pdf/sheet/${sheetData?.basic?.id}/podkladka`).then(res => res.data)
                 const printer = localStorage.getItem("printer");
-                
+
                 const res = await axiosInterface.get(`raports/print?pathToPdf=${path}&printer=${printer}`).then(res => res.data)
 
-                if(res.success) toast.success(res.message)
+                if (res.success) toast.success(res.message)
                 else toast.error(res.message)
             } catch (error) {
                 if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -370,7 +370,7 @@ const SheetCard = () => {
         if (res.status === 200) {
             toast.success(`Arkusz ${sheetData?.basic?.name} został zfinalizowany.`);
         }
-        
+
 
         loadSheet();
     }, [loadSheet, sheetData])
@@ -595,7 +595,7 @@ const SheetCard = () => {
                                         <TableHead>Nazwa</TableHead>
                                         <TableHead>Kod</TableHead>
                                         <TableHead>Aktywny</TableHead>
-                                        <TableHead>Delta</TableHead>
+                                        <TableHead>Różnica</TableHead>
                                         <TableHead>Wartosc</TableHead>
                                         <TableHead>Komentarz</TableHead>
                                     </TableRow>
@@ -678,7 +678,7 @@ const SheetCard = () => {
                                                             <TableHead>Status</TableHead>
                                                             <TableHead>Oczekiwano</TableHead>
                                                             <TableHead>Policzono</TableHead>
-                                                            <TableHead>Delta</TableHead>
+                                                            <TableHead>Różnica</TableHead>
                                                             <TableHead>Rozbieżność</TableHead>
                                                         </TableRow>
                                                     </TableHeader>
@@ -736,7 +736,7 @@ const SheetCard = () => {
                             </Accordion>
                         </TabsContent>
                         <TabsContent value="downloads">
-                            {!sheetData?.basic?.temp &&<div className="flex flex-col gap-4 mt-4">
+                            {!sheetData?.basic?.temp && <div className="flex flex-col gap-4 mt-4">
                                 {!sheetData?.basic?.dynamic && <>
                                     <div className="flex gap-4 items-start">
                                         <Button
@@ -746,7 +746,7 @@ const SheetCard = () => {
                                             <FiPrinter className="w-5 h-5 mr-2" />
                                             Drukuj arkusz
                                         </Button>
-                                        
+
                                         <Button
                                             onClick={handleDownloadPDF}
                                             variant="outline"
@@ -764,7 +764,7 @@ const SheetCard = () => {
                                             <FiPrinter className="w-5 h-5 mr-2" />
                                             Drukuj kreski
                                         </Button>
-                                        
+
                                         <Button
                                             onClick={handleDownloadKreski}
                                             variant="outline"
@@ -784,7 +784,7 @@ const SheetCard = () => {
                                             <FiPrinter className="w-5 h-5 mr-2" />
                                             Drukuj potwierdzenie dynamicznego
                                         </Button>
-                                        
+
                                         <Button
                                             onClick={handleDownloadDynamic}
                                             variant="outline"
@@ -804,7 +804,7 @@ const SheetCard = () => {
                                             <FiPrinter className="w-5 h-5 mr-2" />
                                             Drukuj podsumowanie
                                         </Button>
-                                        
+
                                         <Button
                                             onClick={handleDownloadDynSumUp}
                                             variant="outline"
@@ -818,13 +818,13 @@ const SheetCard = () => {
                                 {sheetData?.basic?.signing_at && (
                                     <div className="flex gap-4 items-start">
                                         <Button
-                                        onClick={handlePrintPodladka}
-                                        className="flex-1"
+                                            onClick={handlePrintPodladka}
+                                            className="flex-1"
                                         >
                                             <FiPrinter className="w-5 h-5 mr-2" />
                                             Drukuj podkładka
                                         </Button>
-                                        
+
                                         <Button
                                             onClick={handleDownloadPodladka}
                                             variant="outline"

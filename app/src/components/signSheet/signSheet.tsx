@@ -40,7 +40,7 @@ interface SignSheetRequest {
     onShelf: number;
 }
 
-const SignSheet = ({onClose}: {
+const SignSheet = ({ onClose }: {
     onClose: () => void
 }) => {
     const { isSignSheetStoreOpen, sheetId, closeSignSheetStoreModal } = useSignSheetStore();
@@ -99,10 +99,10 @@ const SignSheet = ({onClose}: {
         try {
             const path = await axiosInterface.get(`pdf/sheet/${sheetId}/dynsumup`).then(res => res.data)
             const printer = localStorage.getItem("printer");
-            
+
             const res = await axiosInterface.get(`raports/print?pathToPdf=${path}&printer=${printer}`).then(res => res.data)
 
-            if(res.success) toast.success(res.message)
+            if (res.success) toast.success(res.message)
             else toast.error(res.message)
         } catch (error) {
             if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -146,10 +146,10 @@ const SignSheet = ({onClose}: {
         try {
             const path = await axiosInterface.get(`pdf/sheet/${sheetId}/podkladka`).then(res => res.data)
             const printer = localStorage.getItem("printer");
-            
+
             const res = await axiosInterface.get(`raports/print?pathToPdf=${path}&printer=${printer}`).then(res => res.data)
 
-            if(res.success) toast.success(res.message)
+            if (res.success) toast.success(res.message)
             else toast.error(res.message)
         } catch (error) {
             if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -194,11 +194,11 @@ const SignSheet = ({onClose}: {
                                 <TableHead className="text-center">Kod</TableHead>
                                 <TableHead className="text-center border-l border-black">Import</TableHead>
                                 <TableHead className="text-center">Oczek.</TableHead>
-                                <TableHead className="text-center">Delta</TableHead>
+                                <TableHead className="text-center">Różnica</TableHead>
                                 <TableHead className="text-center">Wartość</TableHead>
                                 <TableHead className="text-center border-l border-black">Półka</TableHead>
                                 <TableHead className="text-center">PcM</TableHead>
-                                <TableHead className="text-center">Delta</TableHead>
+                                <TableHead className="text-center">Różnica</TableHead>
                                 <TableHead className="text-center">Wartość</TableHead>
                             </TableRow>
                         </TableHeader>
