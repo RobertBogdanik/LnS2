@@ -3656,7 +3656,7 @@ export class PdfService {
                                 { text: 'Kod', fillColor: '#e0e0e0', fontSize: 11 },
                                 { text: 'Stan', fillColor: '#e0e0e0', fontSize: 11 },
                                 { text: 'Policzono', fillColor: '#e0e0e0', fontSize: 11 },
-                                { text: 'Delta', fillColor: '#e0e0e0', fontSize: 11 }
+                                { text: 'Różnica', fillColor: '#e0e0e0', fontSize: 11 }
 
                             ],
                             ...dataToPrint
