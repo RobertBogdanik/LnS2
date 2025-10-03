@@ -388,9 +388,9 @@ export function ProductListDialog({ onClose }: { onClose: (el: Product[]) => voi
                 )}
               </DialogTitle>
               <div className="flex items-center space-x-2">
-                <Button variant="outline" onClick={loadMore}>
+                {products.length >= 200 && <Button variant="outline" onClick={loadMore}>
                   Załaduj więcej
-                </Button>
+                </Button>}
                 <Button variant="default" onClick={closeModal}>
                   <MdClose />
                 </Button>
