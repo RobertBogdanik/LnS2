@@ -409,6 +409,16 @@ const SignSheet = ({ onClose }: {
                                     </Button>
                                 </TableCell>
                             </TableRow>
+                            <TableRow className="text-sm">
+                                <TableCell colSpan={10} className="text-left text-muted-foreground">
+                                    <Button
+                                        variant={'outline'}
+                                        className="w-full p-5 mb-3"
+                                        onClick={() => closeSignSheetStoreModal()}>
+                                        Zamknij
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
                         </TableFooter>
                     </Table>
                 </>}
