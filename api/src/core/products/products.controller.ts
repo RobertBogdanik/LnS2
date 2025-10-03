@@ -49,5 +49,4 @@ export class ProductsController {
         
     return this.productsService.changeDelta(TowID, shelf, headers.decodedJwt.usid, headers.count);
   }
-
 }

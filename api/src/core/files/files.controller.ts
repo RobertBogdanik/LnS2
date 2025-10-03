@@ -20,4 +20,10 @@ export class FilesController {
     });
     res.send(fileBuffer);
   }
+
+  
+  @Get('getImage/:code')
+  async getImage(@Param("code") code: string) {
+    return this.filesService.getImage(code);
+  }
 }

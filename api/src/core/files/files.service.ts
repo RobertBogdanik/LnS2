@@ -30,4 +30,21 @@ export class FilesService {
       throw new NotFoundException(`File not found or cannot be read: ${error.message}`);
     }
   }
+
+  async getImage(code: string) {
+    const imgPath = this.configService.get<string>('IMG_PATH');
+    if (!imgPath)  throw new Error('IMG_PATH is not defined');
+    const fullPath = path.join(imgPath, `${code}.jpg`);
+    this.logger.log(`Attempting to get image ${code} from ${fullPath}`);
+    try {
+      const fileBuffer = await fs.readFile(fullPath);
+      this.logger.log(`Image ${code} read successfully, size: ${fileBuffer.length} bytes`);
+      return fileBuffer;
+    } catch (error) {
+      this.logger.error(`Error reading image ${code}: ${error.message}`);
+
+      const grayBg = Buffer.alloc(800 * 800 * 3, 128);
+      return grayBg;
+    }
+  }
 }

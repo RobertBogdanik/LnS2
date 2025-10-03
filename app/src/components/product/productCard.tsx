@@ -133,9 +133,10 @@ const ProductCard = () => {
           </div>}
           {!isLoading && <div className="grid grid-cols-3 gap-4">
             <div className="col-span-1 flex items-center justify-center">
-              <div
+              {/* <div
                 className="w-[200px] h-[200px] object-cover bg-gray-200"
-              />
+              /> */}
+              <img src={`${process.env.NEXT_PUBLIC_SERVER_HOST}:${process.env.NEXT_PUBLIC_SERVER_PORT}/getImage/${productCard?.basic?.MainCode.replaceAll('?', '')}`} alt="Product Image" className="w-[200px] h-[200px] object-cover bg-gray-200" />
             </div>
             <div className="col-span-2 gap-4 flex-col flex">
               <div>
