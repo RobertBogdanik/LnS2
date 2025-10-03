@@ -1,4 +1,5 @@
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+// import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { DialogTitle } from "@radix-ui/react-dialog";
 import {
     Table,
@@ -165,12 +166,12 @@ const SignSheet = ({ onClose }: {
     if (!sheetId) return null;
 
     return (
-        <Dialog open={isSignSheetStoreOpen} onOpenChange={closeSignSheetStoreModal}>
+        <AlertDialog open={isSignSheetStoreOpen} onOpenChange={closeSignSheetStoreModal}>
 
             {/* <DialogContent className="min-w-7xl h-[90vh] flex flex-col gap-0 p-0" showCloseButton={false}> */}
-            <DialogContent className="sm:max-w-[1400px]  max-h-[700px] flex flex-col">
-                <DialogHeader className="gap-0 p-2 pb-0">
-                    <DialogTitle className="text-2xl font-bold mb-2 flex items-center justify-between">
+            <AlertDialogContent className="sm:max-w-[1400px]  max-h-[700px] flex flex-col">
+                <AlertDialogHeader className="gap-0 p-2 pb-0">
+                    <AlertDialogTitle className="text-2xl font-bold mb-2 flex items-center justify-between">
                         <span>Podpisz arkusz {sheetId}</span>
                         <Button
                             className="p-5"
@@ -178,8 +179,8 @@ const SignSheet = ({ onClose }: {
                         >
                             Drukuj podsumowanie
                         </Button>
-                    </DialogTitle>
-                </DialogHeader>
+                    </AlertDialogTitle>
+                </AlertDialogHeader>
                 {!isLoading && <>
                     {/* <div className="overflow-y-auto max-h-full"> */}
                     <Table className="overflow-y-auto">
@@ -411,8 +412,8 @@ const SignSheet = ({ onClose }: {
                         </TableFooter>
                     </Table>
                 </>}
-            </DialogContent>
-        </Dialog>
+            </AlertDialogContent>
+        </AlertDialog>
     )
 }
 
