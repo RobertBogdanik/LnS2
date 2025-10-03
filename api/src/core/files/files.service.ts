@@ -44,7 +44,7 @@ export class FilesService {
       this.logger.error(`Error reading image ${code}: ${error.message}`);
 
       const grayBg = Buffer.alloc(800 * 800 * 3, 128);
-      return grayBg;
+      return { data: grayBg, mimeType: 'image/jpeg' };
     }
   }
 }

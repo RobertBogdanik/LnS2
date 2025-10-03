@@ -23,7 +23,11 @@ export class FilesController {
 
   
   @Get('getImage/:code')
-  async getImage(@Param("code") code: string) {
-    return this.filesService.getImage(code);
+  async getImage(@Param("code") code: string, @Res() res: Response) {
+    const image = await this.filesService.getImage(code);
+    res.set({
+      'Content-Type': 'image/jpeg',
+    });
+    res.send(image);
   }
 }
