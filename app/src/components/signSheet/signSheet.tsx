@@ -176,7 +176,7 @@ const SignSheet = ({ onClose }: {
                         <>
                             <Button
                                 variant={'outline'}
-                                className="w-full p-5"
+                                className="w-full p-5 mr-3"
                                 onClick={() => closeSignSheetStoreModal()}>
                                 Zamknij
                             </Button>
