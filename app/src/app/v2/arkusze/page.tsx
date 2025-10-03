@@ -307,7 +307,6 @@ const ArkuszPage = () => {
                             <TableCell>{el.created_at ? new Date(el.created_at).toLocaleString() : ""}</TableCell>
                             <TableCell>
                                 <Button
-                                    variant="outline"
                                     size="sm"
                                     onClick={() => openModal(el.id)}
                                 >

@@ -55,7 +55,7 @@ const SignPage = () => {
                                 <TableCell>{sheet.author}</TableCell>
                                 <TableCell>{new Date(sheet.closed_at).toLocaleString()}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="outline" onClick={() => openSignSheetStoreModal(sheet.id)}>Podpisz</Button>
+                                    <Button onClick={() => openSignSheetStoreModal(sheet.id)}>Podpisz</Button>
                                 </TableCell>
                             </TableRow>
                         ))}
