@@ -173,10 +173,10 @@ const SignSheet = ({ onClose }: {
                 <AlertDialogHeader className="gap-0 p-2 pb-0">
                     <AlertDialogTitle className="text-2xl font-bold mb-2 flex items-center justify-between">
                         <span>Podpisz arkusz {sheetId}</span>
-                        <>
+                        <div>
                             <Button
                                 variant={'outline'}
-                                className="w-full p-5 mr-3"
+                                className="p-5 mr-3"
                                 onClick={() => closeSignSheetStoreModal()}>
                                 Zamknij
                             </Button>
@@ -186,7 +186,7 @@ const SignSheet = ({ onClose }: {
                             >
                                 Drukuj podsumowanie
                             </Button>
-                        </>
+                        </div>
                     </AlertDialogTitle>
                 </AlertDialogHeader>
                 {!isLoading && <>
