@@ -402,7 +402,7 @@ const SignSheet = ({ onClose }: {
                             <TableRow className="text-sm">
                                 <TableCell colSpan={10} className="text-left text-muted-foreground">
                                     <Button
-                                        className="w-full p-5 mb-3"
+                                        className="w-full p-5"
                                         disabled={sheetData?.some((pos) => isNaN(Number(pos.onShelf)) || isNaN(Number(pos.newDelta)) || pos.onShelf < 0) || sheetData?.some((pos) => isNaN(Number(pos.newDelta)))}
                                         onClick={signSheetAndDownload}>
                                         Podpisz arkusz i drukuj podkładkę
@@ -413,7 +413,7 @@ const SignSheet = ({ onClose }: {
                                 <TableCell colSpan={10} className="text-left text-muted-foreground">
                                     <Button
                                         variant={'outline'}
-                                        className="w-full p-5 mb-3"
+                                        className="w-full p-5"
                                         onClick={() => closeSignSheetStoreModal()}>
                                         Zamknij
                                     </Button>
