@@ -111,7 +111,7 @@ export function ProductListDialog({ onClose }: { onClose: (el: Product[]) => voi
     });
   }, []);
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (limit = 200) => {
     setIsLoading(true);
     const res = await axiosInterface.get('/products/search', {
       params: {
@@ -119,7 +119,7 @@ export function ProductListDialog({ onClose }: { onClose: (el: Product[]) => voi
         aso: searchParams.asortyment,
         status: searchParams.status,
         padding: 0,
-        limit: 200,
+        limit: limit,
       }
     });
 
@@ -366,6 +366,12 @@ export function ProductListDialog({ onClose }: { onClose: (el: Product[]) => voi
     return "";
   }, [UsID]);
 
+  const loadMore = async () => {
+    setIsLoading(true);
+    fetchProducts(1000).then(() => {
+      setIsLoading(false);
+    });
+  }
   return (
     <>
       <Dialog open={isOpen} onOpenChange={closeModal}>
@@ -382,6 +388,9 @@ export function ProductListDialog({ onClose }: { onClose: (el: Product[]) => voi
                 )}
               </DialogTitle>
               <div className="flex items-center space-x-2">
+                <Button variant="outline" onClick={loadMore}>
+                  Załaduj więcej
+                </Button>
                 <Button variant="default" onClick={closeModal}>
                   <MdClose />
                 </Button>
