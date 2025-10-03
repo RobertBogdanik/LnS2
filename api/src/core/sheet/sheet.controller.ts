@@ -117,4 +117,12 @@ export class SheetController {
     if (!headers.decodedJwt?.usid) throw new UnauthorizedException('Brak uprawnień do usunięcia arkusza');
     return this.sheetService.deleteSheet(id, headers.decodedJwt.usid);
   }
+
+  @Post('signAll')
+  async signAllSheets(@UserHeaders() headers: UserHeadersType) {
+    if (!headers.decodedJwt?.usid) throw new UnauthorizedException('Brak uprawnień do podpisania arkusza');
+    if (!headers.count) throw new UnauthorizedException('Brak liczeania');
+
+    return this.sheetService.signAllSheets(headers.decodedJwt.usid, headers.count);
+  }
 }

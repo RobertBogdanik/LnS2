@@ -701,4 +701,21 @@ export class SheetService {
 
         return { success: true, name: sheet.name};
     }
+
+    async signAllSheets(UsId: number, count: number) {
+        const userExists = await this.authService.verifyUser(UsId);
+        if (!userExists) throw new Error('User not found');
+
+        const sheets = await this.sheetRepo.find({ where: { signing_at: IsNull(), closed_at: Not(IsNull()), active: true, count: { id: count } } });
+        await this.importRepo.manager.transaction(async transactionalEntityManager => {
+            for (const sheet of sheets) {
+                sheet.signing_at = new Date();
+                sheet.signing_by = { id: UsId } as any;
+                await transactionalEntityManager.save(sheet);
+            }
+        });
+        
+        return { success: true, signedSheets: sheets.length };
+    }
+
 }

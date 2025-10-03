@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import axiosInterface from "@/config/axios";
 import { useSignSheetStore } from "@/context/sign";
+import { useUserStore } from "@/context/user";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const SignPage = () => {
     type Sheet = {
@@ -18,6 +20,10 @@ const SignPage = () => {
     const [loading, setLoading] = useState(true);
     const { openSignSheetStoreModal} = useSignSheetStore();
 
+    const {
+        isAdmin
+    } = useUserStore();
+
     const loadData = async () => {
         setLoading(true);
 
@@ -29,10 +35,25 @@ const SignPage = () => {
     useEffect(() => {
         loadData();
     }, []);
+    
+    const signAll = async () => {
+        if (!isAdmin) return;
+        setLoading(true);
+        try {
+            await axiosInterface.post('/sheet/signAll');
+            loadData();
+            toast.success("Wszystkie arkusze zostały podpisane");
+        } catch (error) {
+            toast.error("Wystąpił błąd podczas podpisywania arkuszy");
+        } finally {
+            setLoading(false);
+        }
+    }
 
     return (
         <div className="p-4 container mx-auto">
             <SignSheet onClose={loadData} />
+            {isAdmin && <Button className="mb-4 w-full" onClick={signAll}>Podpisz wszystkie</Button>}
             <h1 className="text-2xl font-bold mb-4">Arkusze do podpisania</h1>
             {loading ? (
                 <p>Ładowanie...</p>
